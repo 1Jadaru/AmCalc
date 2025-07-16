@@ -1,0 +1,80 @@
+# BMad Core Configuration for AmCalc Project
+
+# Project Information
+project:
+  name: AmCalc
+  description: Professional Amortization Calculator SaaS
+  version: 1.0.0
+  type: greenfield-saas
+
+# Document Configuration
+documents:
+  prd:
+    version: v4
+    sharded: true
+    shardedLocation: docs/prd
+    epicFilePattern: "epic-{n}*.md"
+  
+  architecture:
+    version: v4
+    sharded: true
+    shardedLocation: docs/architecture
+    componentFilePattern: "component-{n}*.md"
+
+# Developer Configuration
+developer:
+  loadAlwaysFiles:
+    - docs/project-brief.md
+    - docs/technical-architecture.md
+    - docs/business-model.md
+    - docs/development-plan.md
+    - docs/brainstorming-session-results.md
+  
+  debugLog: logs/dev-debug.log
+  agentCoreDump: logs/agent-conversations
+
+# Agent Configuration
+agents:
+  default: bmad-orchestrator
+  available:
+    - bmad-orchestrator
+    - analyst
+    - pm
+    - architect
+    - dev
+    - qa
+    - ux-expert
+    - po
+
+# Workflow Configuration
+workflows:
+  default: greenfield-fullstack
+  available:
+    - greenfield-fullstack
+    - greenfield-ui
+    - greenfield-service
+
+# Technical Preferences
+technical:
+  language: TypeScript
+  framework: React/Next.js
+  database: PostgreSQL
+  hosting: Render.com
+  styling: Tailwind CSS
+  testing: Jest + React Testing Library
+  deployment: GitHub Actions
+
+# Project Structure
+structure:
+  docs: docs/
+  src: src/
+  tests: tests/
+  logs: logs/
+  config: config/
+
+# Development Settings
+development:
+  methodology: Agile/Scrum
+  timeline: 1-week MVP target
+  teamSize: solo
+  approach: BMad-Method with Vibe Coding

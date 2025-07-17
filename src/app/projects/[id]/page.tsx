@@ -108,6 +108,50 @@ export default function ProjectDetailPage() {
     setScenarioToDelete(null);
   };
 
+  const downloadCSV = (scenario: Scenario) => {
+    if (!scenario.amortization_schedule || scenario.amortization_schedule.length === 0) {
+      alert('No amortization schedule available for download');
+      return;
+    }
+
+    // Create CSV with loan summary at the top
+    const loanSummary = [
+      `Loan Summary for: ${scenario.name}`,
+      `Principal: ${formatCurrency(scenario.principal)}`,
+      `Interest Rate: ${formatPercentage(scenario.interest_rate)}`,
+      `Term: ${scenario.term_years} years`,
+      `Payment Frequency: ${scenario.payment_frequency}`,
+      `Monthly Payment: ${formatCurrency(scenario.payment_amount)}`,
+      `Total Interest: ${formatCurrency(scenario.total_interest)}`,
+      `Total Payments: ${formatCurrency(scenario.total_payments)}`,
+      `Generated on: ${new Date().toLocaleDateString()}`,
+      '', // Empty line for spacing
+    ];
+
+    const headers = ['Payment #', 'Payment Amount', 'Principal', 'Interest', 'Remaining Balance'];
+    const csvContent = [
+      ...loanSummary,
+      headers.join(','),
+      ...scenario.amortization_schedule.map((row: any) => [
+        row.paymentNumber,
+        Math.round(row.paymentAmount * 100) / 100,
+        Math.round(row.principalPayment * 100) / 100,
+        Math.round(row.interestPayment * 100) / 100,
+        Math.round(row.remainingBalance * 100) / 100,
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${scenario.name.replace(/[^a-zA-Z0-9]/g, '_')}-amortization-schedule.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
+
   const formatCurrency = (amount: number | string | null) => {
     if (amount === null || amount === undefined) return '$0';
     const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
@@ -188,25 +232,36 @@ export default function ProjectDetailPage() {
                         {new Date(scenario.created_at).toLocaleDateString()}
                       </span>
                     </div>
-                    <button
-                      onClick={() => handleDeleteClick(scenario)}
-                      disabled={deletingScenarioId === scenario.id}
-                      className="ml-4 px-3 py-1 text-sm bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg transition-colors duration-200 flex items-center gap-1"
-                    >
-                      {deletingScenarioId === scenario.id ? (
-                        <>
-                          <div className="animate-spin rounded-full h-3 w-3 border-b border-white"></div>
-                          Deleting...
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          Delete
-                        </>
-                      )}
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleDeleteClick(scenario)}
+                        disabled={deletingScenarioId === scenario.id}
+                        className="ml-4 px-3 py-1 text-sm bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg transition-colors duration-200 flex items-center gap-1"
+                      >
+                        {deletingScenarioId === scenario.id ? (
+                          <>
+                            <div className="animate-spin rounded-full h-3 w-3 border-b border-white"></div>
+                            Deleting...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Delete
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => downloadCSV(scenario)}
+                        className="ml-2 px-3 py-1 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 flex items-center gap-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        CSV
+                      </button>
+                    </div>
                   </div>
                   
                   {/* Calculation Summary */}

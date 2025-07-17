@@ -1,6 +1,10 @@
+'use client';
+
 import Link from "next/link";
+import { useAuth } from "../contexts/auth.context";
 
 export default function Home() {
+  const { isAuthenticated } = useAuth();
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
@@ -12,18 +16,43 @@ export default function Home() {
               <span className="ml-2 text-sm text-gray-500">Professional Amortization Calculator</span>
             </div>
             <nav className="flex space-x-8">
-              <Link 
-                href="/auth" 
-                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Sign In
-              </Link>
-              <Link 
-                href="/auth" 
-                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
-              >
-                Get Started
-              </Link>
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    href="/dashboard"
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/projects"
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Projects
+                  </Link>
+                  <Link
+                    href="/calculator"
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Calculator
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link 
+                    href="/auth" 
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Sign In
+                  </Link>
+                  <Link 
+                    href="/auth" 
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
+                  >
+                    Get Started
+                  </Link>
+                </>
+              )}
             </nav>
           </div>
         </div>
@@ -48,14 +77,16 @@ export default function Home() {
                 Try Calculator
               </Link>
             </div>
-            <div className="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
-              <Link
-                href="/auth"
-                className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
-              >
-                Create Account
-              </Link>
-            </div>
+            {!isAuthenticated && (
+              <div className="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
+                <Link
+                  href="/auth"
+                  className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
+                >
+                  Create Account
+                </Link>
+              </div>
+            )}
           </div>
         </div>
 
@@ -143,22 +174,24 @@ export default function Home() {
         </div>
 
         {/* CTA Section */}
-        <div className="mt-24 text-center">
-          <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            Ready to get started?
-          </h2>
-          <p className="mt-4 text-lg text-gray-600">
-            Join thousands of users who trust AmCalc for their loan calculations.
-          </p>
-          <div className="mt-8 flex justify-center">
-            <Link
-              href="/auth"
-              className="bg-blue-600 text-white px-8 py-3 rounded-md text-lg font-medium hover:bg-blue-700"
-            >
-              Start Calculating Now
-            </Link>
+        {!isAuthenticated && (
+          <div className="mt-24 text-center">
+            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+              Ready to get started?
+            </h2>
+            <p className="mt-4 text-lg text-gray-600">
+              Join thousands of users who trust AmCalc for their loan calculations.
+            </p>
+            <div className="mt-8 flex justify-center">
+              <Link
+                href="/auth"
+                className="bg-blue-600 text-white px-8 py-3 rounded-md text-lg font-medium hover:bg-blue-700"
+              >
+                Start Calculating Now
+              </Link>
+            </div>
           </div>
-        </div>
+        )}
       </main>
 
       {/* Footer */}
@@ -173,9 +206,20 @@ export default function Home() {
               <Link href="/calculator" className="text-gray-400 hover:text-white">
                 Calculator
               </Link>
-              <Link href="/auth" className="text-gray-400 hover:text-white">
-                Sign In
-              </Link>
+              {isAuthenticated ? (
+                <>
+                  <Link href="/dashboard" className="text-gray-400 hover:text-white">
+                    Dashboard
+                  </Link>
+                  <Link href="/projects" className="text-gray-400 hover:text-white">
+                    Projects
+                  </Link>
+                </>
+              ) : (
+                <Link href="/auth" className="text-gray-400 hover:text-white">
+                  Sign In
+                </Link>
+              )}
               <Link href="/settings" className="text-gray-400 hover:text-white">
                 Settings
               </Link>

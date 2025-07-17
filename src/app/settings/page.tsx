@@ -6,7 +6,7 @@ import { ProtectedRoute } from '../../components/auth/ProtectedRoute';
 import { ProfileForm } from '../../components/forms/auth/ProfileForm';
 
 export default function SettingsPage() {
-  const { user, logout } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<'profile' | 'security'>('profile');
 
   const handleLogout = async () => {
@@ -16,6 +16,65 @@ export default function SettingsPage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <header className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-6">
+              <div className="flex items-center">
+                <a href="/" className="text-3xl font-bold text-gray-900 hover:text-blue-600">
+                  AmCalc
+                </a>
+                <span className="ml-2 text-sm text-gray-500">Professional Amortization Calculator</span>
+              </div>
+              <nav className="flex space-x-8">
+                {isAuthenticated ? (
+                  <>
+                    <a
+                      href="/dashboard"
+                      className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                    >
+                      Dashboard
+                    </a>
+                    <a
+                      href="/projects"
+                      className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                    >
+                      Projects
+                    </a>
+                    <a
+                      href="/calculator"
+                      className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                    >
+                      Calculator
+                    </a>
+                    <button
+                      onClick={handleLogout}
+                      className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700"
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <a
+                      href="/auth"
+                      className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                    >
+                      Sign In
+                    </a>
+                    <a
+                      href="/auth"
+                      className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
+                    >
+                      Get Started
+                    </a>
+                  </>
+                )}
+              </nav>
+            </div>
+          </div>
+        </header>
+        {/* Main Content */}
         <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
             <div className="bg-white rounded-lg shadow">

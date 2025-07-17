@@ -20,8 +20,15 @@ export default function ProjectsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [newProject, setNewProject] = useState({ name: '', description: '' });
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [deletingProject, setDeletingProject] = useState<Project | null>(null);
+  const [editForm, setEditForm] = useState({ name: '', description: '' });
   const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -47,9 +54,26 @@ export default function ProjectsPage() {
     setShowCreateModal(true);
   };
 
+  const handleEditProject = (project: Project) => {
+    setEditingProject(project);
+    setEditForm({ name: project.name, description: project.description });
+    setShowEditModal(true);
+  };
+
+  const handleDeleteProject = (project: Project) => {
+    setDeletingProject(project);
+    setShowDeleteModal(true);
+  };
+
   const handleCloseModal = () => {
     setShowCreateModal(false);
+    setShowEditModal(false);
+    setShowDeleteModal(false);
     setNewProject({ name: '', description: '' });
+    setEditingProject(null);
+    setDeletingProject(null);
+    setEditForm({ name: '', description: '' });
+    setError(null);
   };
 
   const handleSubmitProject = async (e: React.FormEvent) => {
@@ -83,6 +107,67 @@ export default function ProjectsPage() {
       setError(error?.message || 'Failed to create project. Please try again.');
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleUpdateProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!editingProject || !editForm.name.trim()) {
+      setError('Project name is required');
+      return;
+    }
+
+    setIsUpdating(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/projects/${editingProject.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ name: editForm.name, description: editForm.description }),
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Failed to update project');
+      }
+      const updated = await res.json();
+      setProjects(prev => prev.map(p => p.id === editingProject.id ? { ...p, ...updated } : p));
+      handleCloseModal();
+    } catch (error: any) {
+      setError(error?.message || 'Failed to update project. Please try again.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingProject) return;
+
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/projects/${deletingProject.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Failed to delete project');
+      }
+
+      // Remove the project from the local state
+      setProjects(prev => prev.filter(p => p.id !== deletingProject.id));
+      handleCloseModal();
+    } catch (error: any) {
+      setError(error?.message || 'Failed to delete project. Please try again.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -248,8 +333,17 @@ export default function ProjectsPage() {
                             View Project
                           </button>
                         </Link>
-                        <button className="px-3 py-2 text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 text-sm">
+                        <button 
+                          onClick={() => handleEditProject(project)}
+                          className="bg-gray-600 text-white px-3 py-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 text-sm"
+                        >
                           Edit
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteProject(project)}
+                          className="bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 text-sm"
+                        >
+                          Delete
                         </button>
                       </div>
                     </div>
@@ -348,6 +442,112 @@ export default function ProjectsPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Project Modal */}
+        {showEditModal && editingProject && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-auto">
+              <h2 className="text-xl font-bold text-gray-900">Edit Project</h2>
+              <form onSubmit={handleUpdateProject}>
+                <div className="mb-4">
+                  <label htmlFor="editProjectName" className="block text-sm font-medium text-gray-700 mb-2">
+                    Project Name *
+                  </label>
+                  <input
+                    type="text"
+                    id="editProjectName"
+                    value={editForm.name}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter project name"
+                    required
+                  />
+                </div>
+                <div className="mb-6">
+                  <label htmlFor="editProjectDescription" className="block text-sm font-medium text-gray-700 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    id="editProjectDescription"
+                    value={editForm.description}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter project description (optional)"
+                    rows={3}
+                  />
+                </div>
+                {error && (
+                  <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                    {error}
+                  </div>
+                )}
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={handleCloseModal}
+                    className="px-4 py-2 text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isUpdating}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isUpdating ? 'Updating...' : 'Update Project'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Project Modal */}
+        {showDeleteModal && deletingProject && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-auto">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Delete Project</h2>
+              <div className="mb-6">
+                <p className="text-gray-700 mb-4">
+                  Are you sure you want to delete <strong>"{deletingProject.name}"</strong>?
+                </p>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-start">
+                    <svg className="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                    <div>
+                      <p className="text-sm text-red-700 font-medium">This action cannot be undone</p>
+                      <p className="text-sm text-red-600 mt-1">
+                        This will permanently delete the project and all {deletingProject.scenarioCount} scenario{deletingProject.scenarioCount !== 1 ? 's' : ''} it contains.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {error && (
+                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                  {error}
+                </div>
+              )}
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={handleCloseModal}
+                  className="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  disabled={isDeleting}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg transition-colors duration-200"
+                >
+                  {isDeleting ? 'Deleting...' : 'Delete Project'}
+                </button>
+              </div>
             </div>
           </div>
         )}

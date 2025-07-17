@@ -1,0 +1,62 @@
+# Page snapshot
+
+```yaml
+- heading "Amortization Calculator" [level=1]
+- paragraph: Calculate your monthly mortgage payments and view a complete amortization schedule. See how much interest you'll pay over the life of your loan.
+- heading "Loan Calculator" [level=2]
+- paragraph: "💡 Guest mode: Calculations are performed locally"
+- text: Loan Amount
+- textbox "Loan Amount": "200000200000"
+- text: $
+- paragraph: Principal cannot exceed $10,000,000
+- text: Annual Interest Rate
+- spinbutton "Annual Interest Rate": "3.5"
+- text: "% Loan Term (Years)"
+- spinbutton "Loan Term (Years)": "30"
+- text: Payment Frequency
+- combobox "Payment Frequency":
+  - option "Monthly" [selected]
+  - option "Bi-weekly"
+  - option "Weekly"
+- button "Calculate Payment" [disabled]
+- text: No Results
+- paragraph: Enter loan details and click calculate to see results
+- heading "About This Calculator" [level=2]
+- heading "How It Works" [level=3]
+- list:
+  - listitem: • Enter your loan amount, interest rate, and term
+  - listitem: • Get instant calculation of your monthly payment
+  - listitem: • View complete amortization schedule
+  - listitem: • See total interest and payment breakdown
+  - listitem: • Export results to CSV for your records
+- heading "Understanding Your Results" [level=3]
+- list:
+  - listitem:
+    - text: •
+    - strong: "Principal:"
+    - text: The amount you borrowed
+  - listitem:
+    - text: •
+    - strong: "Interest:"
+    - text: The cost of borrowing money
+  - listitem:
+    - text: •
+    - strong: "Monthly Payment:"
+    - text: Your fixed monthly amount
+  - listitem:
+    - text: •
+    - strong: "Amortization:"
+    - text: How payments are split between principal and interest
+  - listitem:
+    - text: •
+    - strong: "Total Interest:"
+    - text: Total cost of borrowing over the loan term
+- heading "💡 Tips for Better Loan Terms" [level=3]
+- strong: "Lower Interest Rates:"
+- text: Even a small rate reduction can save thousands over the loan term.
+- strong: "Shorter Terms:"
+- text: 15-year loans typically have lower rates and less total interest.
+- strong: "Extra Payments:"
+- text: Making additional principal payments can significantly reduce total interest.
+- alert
+```

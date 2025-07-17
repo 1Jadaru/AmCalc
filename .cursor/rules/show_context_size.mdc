@@ -1,0 +1,6 @@
+---
+description: Always show the total context size used so far.
+alwaysApply: true
+---
+
+After completing your response, please include the total number of tokens used in the current context window.

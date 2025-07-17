@@ -1,0 +1,169 @@
+# Page snapshot
+
+```yaml
+- heading "Amortization Calculator" [level=1]
+- paragraph: Calculate your monthly mortgage payments and view a complete amortization schedule. See how much interest you'll pay over the life of your loan.
+- heading "Loan Calculator" [level=2]
+- paragraph: "💡 Guest mode: Calculations are performed locally"
+- text: Loan Amount
+- textbox "Loan Amount": 200,000
+- text: $ Annual Interest Rate
+- spinbutton "Annual Interest Rate": "3.5"
+- text: "% Loan Term (Years)"
+- spinbutton "Loan Term (Years)": "30"
+- text: Payment Frequency
+- combobox "Payment Frequency":
+  - option "Monthly" [selected]
+  - option "Bi-weekly"
+  - option "Weekly"
+- button "Calculate Payment"
+- heading "Quick Preview" [level=3]
+- paragraph: "Loan Amount: $200,000"
+- paragraph: "Interest Rate: 3.5%"
+- paragraph: "Term: 30 years"
+- heading "Payment Summary" [level=2]
+- text: Monthly Payment $898
+- heading "Loan Summary" [level=3]
+- text: Principal $200,000 Interest Rate 3.50% Term 30 years Payments 360
+- heading "Total Costs" [level=3]
+- text: Total Interest $123,312 Total Payments $323,312 Interest to Principal Ratio 61.7%
+- heading "💡 Quick Insights" [level=4]
+- paragraph: • You'll pay $123,312 in interest
+- paragraph: • That's 61.7% of your loan amount
+- paragraph: • Your first payment will be $583 interest, $315 principal
+- heading "Amortization Schedule" [level=2]
+- text: "Show:"
+- combobox "Show:":
+  - option "12 payments" [selected]
+  - option "24 payments"
+  - option "60 payments"
+  - option "120 payments"
+- button "Export CSV"
+- table:
+  - rowgroup:
+    - 'row "Payment # Payment Amount Principal Interest Remaining Balance"':
+      - 'cell "Payment #"'
+      - cell "Payment Amount"
+      - cell "Principal"
+      - cell "Interest"
+      - cell "Remaining Balance"
+  - rowgroup:
+    - row "1 $898 $315 $583 $199,685":
+      - cell "1"
+      - cell "$898"
+      - cell "$315"
+      - cell "$583"
+      - cell "$199,685"
+    - row "2 $898 $316 $582 $199,370":
+      - cell "2"
+      - cell "$898"
+      - cell "$316"
+      - cell "$582"
+      - cell "$199,370"
+    - row "3 $898 $317 $581 $199,053":
+      - cell "3"
+      - cell "$898"
+      - cell "$317"
+      - cell "$581"
+      - cell "$199,053"
+    - row "4 $898 $318 $581 $198,735":
+      - cell "4"
+      - cell "$898"
+      - cell "$318"
+      - cell "$581"
+      - cell "$198,735"
+    - row "5 $898 $318 $580 $198,417":
+      - cell "5"
+      - cell "$898"
+      - cell "$318"
+      - cell "$580"
+      - cell "$198,417"
+    - row "6 $898 $319 $579 $198,098":
+      - cell "6"
+      - cell "$898"
+      - cell "$319"
+      - cell "$579"
+      - cell "$198,098"
+    - row "7 $898 $320 $578 $197,777":
+      - cell "7"
+      - cell "$898"
+      - cell "$320"
+      - cell "$578"
+      - cell "$197,777"
+    - row "8 $898 $321 $577 $197,456":
+      - cell "8"
+      - cell "$898"
+      - cell "$321"
+      - cell "$577"
+      - cell "$197,456"
+    - row "9 $898 $322 $576 $197,134":
+      - cell "9"
+      - cell "$898"
+      - cell "$322"
+      - cell "$576"
+      - cell "$197,134"
+    - row "10 $898 $323 $575 $196,811":
+      - cell "10"
+      - cell "$898"
+      - cell "$323"
+      - cell "$575"
+      - cell "$196,811"
+    - row "11 $898 $324 $574 $196,487":
+      - cell "11"
+      - cell "$898"
+      - cell "$324"
+      - cell "$574"
+      - cell "$196,487"
+    - row "12 $898 $325 $573 $196,162":
+      - cell "12"
+      - cell "$898"
+      - cell "$325"
+      - cell "$573"
+      - cell "$196,162"
+- text: Showing 1 to 12 of 360 payments
+- button "Previous" [disabled]
+- button "1"
+- button "2"
+- button "3"
+- button "4"
+- button "5"
+- button "Next"
+- heading "About This Calculator" [level=2]
+- heading "How It Works" [level=3]
+- list:
+  - listitem: • Enter your loan amount, interest rate, and term
+  - listitem: • Get instant calculation of your monthly payment
+  - listitem: • View complete amortization schedule
+  - listitem: • See total interest and payment breakdown
+  - listitem: • Export results to CSV for your records
+- heading "Understanding Your Results" [level=3]
+- list:
+  - listitem:
+    - text: •
+    - strong: "Principal:"
+    - text: The amount you borrowed
+  - listitem:
+    - text: •
+    - strong: "Interest:"
+    - text: The cost of borrowing money
+  - listitem:
+    - text: •
+    - strong: "Monthly Payment:"
+    - text: Your fixed monthly amount
+  - listitem:
+    - text: •
+    - strong: "Amortization:"
+    - text: How payments are split between principal and interest
+  - listitem:
+    - text: •
+    - strong: "Total Interest:"
+    - text: Total cost of borrowing over the loan term
+- heading "💡 Tips for Better Loan Terms" [level=3]
+- strong: "Lower Interest Rates:"
+- text: Even a small rate reduction can save thousands over the loan term.
+- strong: "Shorter Terms:"
+- text: 15-year loans typically have lower rates and less total interest.
+- strong: "Extra Payments:"
+- text: Making additional principal payments can significantly reduce total interest.
+- alert
+```

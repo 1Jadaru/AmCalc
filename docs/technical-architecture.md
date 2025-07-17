@@ -13,6 +13,7 @@ AmCalc is a modern, mobile-first SaaS application built with React/Next.js front
 - **Security**: Enterprise-level security and data protection
 - **Reliability**: High availability and error handling
 - **Cost-Effective**: Efficient resource utilization for solo developer
+- **Quality**: Comprehensive automated testing and validation
 
 ### Design Patterns
 - **Client-Server Architecture**: Separation of concerns between frontend and backend
@@ -20,6 +21,7 @@ AmCalc is a modern, mobile-first SaaS application built with React/Next.js front
 - **Component-Based UI**: Reusable React components
 - **Database-First**: PostgreSQL for data persistence
 - **Progressive Enhancement**: Core functionality works without JavaScript
+- **Test-Driven Development**: Comprehensive testing at all levels
 
 ## Technology Stack
 
@@ -29,7 +31,7 @@ AmCalc is a modern, mobile-first SaaS application built with React/Next.js front
 - **Styling**: Tailwind CSS for responsive design
 - **State Management**: React Context API / Zustand
 - **Build Tool**: Next.js built-in bundler
-- **Testing**: Jest + React Testing Library
+- **Testing**: Jest + React Testing Library + Playwright
 
 ### Backend
 - **Runtime**: Node.js 18+ LTS
@@ -54,9 +56,18 @@ AmCalc is a modern, mobile-first SaaS application built with React/Next.js front
 ### Development Tools
 - **IDE**: Cursor with AI assistance
 - **Version Control**: GitHub
-- **CI/CD**: GitHub Actions
+- **CI/CD**: GitHub Actions with comprehensive testing
 - **Code Quality**: ESLint, Prettier, Husky
 - **Documentation**: JSDoc, README files
+
+### Testing Stack ✅ COMPLETE
+- **Unit Testing**: Jest + React Testing Library
+- **E2E Testing**: Playwright (Chrome, Firefox, Safari, Mobile)
+- **Integration Testing**: Jest + Supertest
+- **Performance Testing**: Lighthouse CI
+- **Security Testing**: npm audit, audit-ci
+- **Accessibility Testing**: Playwright accessibility features
+- **CI/CD**: GitHub Actions with parallel test execution
 
 ## System Architecture
 
@@ -91,64 +102,192 @@ AmCalc is a modern, mobile-first SaaS application built with React/Next.js front
                     └───────────────────────────┘
 ```
 
-### Component Architecture
+### Testing Architecture ✅ COMPLETE
 
-#### Frontend Components
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Testing Pyramid                              │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │              E2E Tests (Playwright)                     │   │
+│  │  • Authentication flows                                 │   │
+│  │  • Calculator functionality                             │   │
+│  │  • Navigation and layout                                │   │
+│  │  • Cross-browser compatibility                          │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │           Integration Tests (Jest + Supertest)         │   │
+│  │  • API endpoint testing                                 │   │
+│  │  • Database integration                                 │   │
+│  │  • Authentication flows                                 │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │              Unit Tests (Jest + RTL)                   │   │
+│  │  • Business logic (CalculatorService)                  │   │
+│  │  • React components                                     │   │
+│  │  • Utility functions                                    │   │
+│  │  • Validation schemas                                   │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### CI/CD Pipeline Architecture ✅ COMPLETE
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Code Push     │───▶│  GitHub Actions │───▶│   Test Results  │
+│   (Main/PR)     │    │                 │    │                 │
+└─────────────────┘    └─────────┬───────┘    └─────────────────┘
+                                 │
+                    ┌─────────────▼─────────────┐
+                    │    Parallel Test Jobs     │
+                    │                           │
+                    │  ┌─────────────────────┐  │
+                    │  │   Unit Tests        │  │
+                    │  │   (Jest + RTL)      │  │
+                    │  └─────────────────────┘  │
+                    │                           │
+                    │  ┌─────────────────────┐  │
+                    │  │   E2E Tests         │  │
+                    │  │   (Playwright)      │  │
+                    │  └─────────────────────┘  │
+                    │                           │
+                    │  ┌─────────────────────┐  │
+                    │  │   Integration Tests │  │
+                    │  │   (Jest + Supertest)│  │
+                    │  └─────────────────────┘  │
+                    │                           │
+                    │  ┌─────────────────────┐  │
+                    │  │   Performance Tests │  │
+                    │  │   (Lighthouse CI)   │  │
+                    │  └─────────────────────┘  │
+                    │                           │
+                    │  ┌─────────────────────┐  │
+                    │  │   Security Tests    │  │
+                    │  │   (npm audit)       │  │
+                    │  └─────────────────────┘  │
+                    └─────────────┬─────────────┘
+                                 │
+                    ┌─────────────▼─────────────┐
+                    │    Quality Gates          │
+                    │                           │
+                    │  • 90%+ Unit Coverage     │
+                    │  • 100% E2E Pass Rate     │
+                    │  • No Security Issues     │
+                    │  • Performance > 90       │
+                    └─────────────┬─────────────┘
+                                 │
+                    ┌─────────────▼─────────────┐
+                    │    Deployment             │
+                    │    (Render.com)           │
+                    └───────────────────────────┘
+```
+
+## Component Architecture
+
+### Frontend Components ✅ COMPLETE
 ```
 src/
 ├── components/
-│   ├── ui/                    # Reusable UI components
+│   ├── ui/                    # Reusable UI components ✅
 │   │   ├── Button.tsx
 │   │   ├── Input.tsx
 │   │   ├── Card.tsx
 │   │   └── Modal.tsx
-│   ├── forms/                 # Form components
-│   │   ├── LoanCalculator.tsx
-│   │   ├── UserRegistration.tsx
-│   │   └── LoginForm.tsx
-│   ├── layout/                # Layout components
+│   ├── forms/                 # Form components ✅
+│   │   ├── auth/              # Authentication forms ✅
+│   │   │   ├── LoginForm.tsx
+│   │   │   ├── RegisterForm.tsx
+│   │   │   └── PasswordResetForm.tsx
+│   │   └── calculator/        # Calculator forms ✅
+│   │       └── CalculatorForm.tsx
+│   ├── layout/                # Layout components ✅
 │   │   ├── Header.tsx
 │   │   ├── Footer.tsx
 │   │   └── Navigation.tsx
-│   └── features/              # Feature-specific components
+│   └── features/              # Feature-specific components ✅
 │       ├── calculator/
+│       │   ├── CalculatorForm.tsx
+│       │   ├── AmortizationTable.tsx
+│       │   └── ResultsDisplay.tsx
 │       ├── projects/
 │       └── scenarios/
-├── pages/                     # Next.js pages
-├── hooks/                     # Custom React hooks
-├── utils/                     # Utility functions
-├── types/                     # TypeScript type definitions
-└── styles/                    # Global styles
+├── app/                       # Next.js App Router ✅
+│   ├── page.tsx               # Home page ✅
+│   ├── calculator/            # Calculator page ✅
+│   ├── auth/                  # Authentication pages ✅
+│   ├── dashboard/             # User dashboard ✅
+│   ├── projects/              # Projects page ✅
+│   └── api/                   # API routes ✅
+├── hooks/                     # Custom React hooks ✅
+├── utils/                     # Utility functions ✅
+├── types/                     # TypeScript definitions ✅
+├── services/                  # Business logic services ✅
+├── contexts/                  # React contexts ✅
+└── styles/                    # Global styles ✅
 ```
 
-#### Backend Structure
+### Backend Structure ✅ COMPLETE
 ```
 src/
-├── api/                       # API routes
-│   ├── auth/                  # Authentication endpoints
-│   ├── calculator/            # Calculation endpoints
-│   ├── projects/              # Project management
-│   └── scenarios/             # Scenario management
-├── services/                  # Business logic
-│   ├── authService.ts
-│   ├── calculatorService.ts
-│   ├── projectService.ts
-│   └── scenarioService.ts
-├── models/                    # Data models
-│   ├── User.ts
-│   ├── Project.ts
-│   └── Scenario.ts
-├── middleware/                # Express middleware
-│   ├── auth.ts
-│   ├── validation.ts
-│   └── errorHandler.ts
-├── utils/                     # Utility functions
-└── config/                    # Configuration files
+├── app/api/                   # API routes ✅
+│   ├── auth/                  # Authentication endpoints ✅
+│   │   ├── register/          # User registration ✅
+│   │   ├── login/             # User login ✅
+│   │   ├── logout/            # User logout ✅
+│   │   ├── me/                # Get current user ✅
+│   │   └── reset-password/    # Password reset ✅
+│   ├── calculator/            # Calculation endpoints ✅
+│   │   └── amortization/      # Amortization calculation ✅
+│   ├── projects/              # Project management ✅
+│   └── scenarios/             # Scenario management ✅
+├── services/                  # Business logic ✅
+│   ├── auth.service.ts        # Authentication service ✅
+│   ├── calculator.service.ts  # Calculator service ✅
+│   ├── project.service.ts     # Project service ✅
+│   └── scenario.service.ts    # Scenario service ✅
+├── middleware/                # Express middleware ✅
+│   ├── auth.middleware.ts     # Authentication middleware ✅
+│   └── validation.ts          # Input validation ✅
+├── utils/                     # Utility functions ✅
+├── types/                     # TypeScript types ✅
+└── contexts/                  # React contexts ✅
+```
+
+### Testing Structure ✅ COMPLETE
+```
+tests/
+├── e2e/                       # End-to-End Tests ✅
+│   ├── auth.spec.ts           # Authentication flows ✅
+│   ├── calculator.spec.ts     # Calculator functionality ✅
+│   ├── navigation.spec.ts     # Navigation and layout ✅
+│   └── utils/
+│       └── test-helpers.ts    # E2E test utilities ✅
+├── components/                # Component Tests ✅
+│   ├── calculator.test.tsx    # Calculator component tests ✅
+│   └── auth.test.tsx          # Auth component tests ✅
+├── api/                       # API Integration Tests ✅
+│   ├── auth.test.ts           # Auth API tests ✅
+│   └── calculator.test.ts     # Calculator API tests ✅
+└── setup.ts                   # Test configuration ✅
+
+src/test/                      # Unit Tests ✅
+├── calculator/
+│   ├── calculator.service.test.ts # Calculator service tests ✅
+│   └── components.test.tsx    # Component unit tests ✅
+├── auth/
+│   ├── auth.test.ts           # Auth service tests ✅
+│   └── security.test.ts       # Security tests ✅
+└── setup.ts                   # Unit test setup ✅
 ```
 
 ## Data Model
 
-### Database Schema
+### Database Schema ✅ COMPLETE
 
 #### Users Table
 ```sql
@@ -158,8 +297,21 @@ CREATE TABLE users (
   password_hash VARCHAR(255) NOT NULL,
   first_name VARCHAR(100),
   last_name VARCHAR(100),
+  is_active BOOLEAN DEFAULT true,
+  email_verified BOOLEAN DEFAULT false,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+#### User Sessions Table
+```sql
+CREATE TABLE user_sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  token_hash VARCHAR(255) NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
@@ -198,173 +350,179 @@ CREATE TABLE scenarios (
 - **Project** → **Scenarios** (One-to-Many)
 - **User** → **Scenarios** (One-to-Many through Projects)
 
-## API Design
+## Testing Strategy ✅ COMPLETE
 
-### RESTful Endpoints
+### Testing Levels
 
-#### Authentication
-```
-POST   /api/auth/register     # User registration
-POST   /api/auth/login        # User login
-POST   /api/auth/logout       # User logout
-GET    /api/auth/me           # Get current user
+#### **1. Unit Tests (Jest + React Testing Library)**
+- **Purpose**: Test individual functions and components in isolation
+- **Coverage**: 90%+ for business logic
+- **Location**: `src/test/` and `tests/components/`
+- **Examples**:
+  - Calculator service mathematical accuracy
+  - React component rendering and interactions
+  - Utility function validation
+  - Type validation with Zod schemas
+
+#### **2. Integration Tests (Jest + Supertest)**
+- **Purpose**: Test API endpoints and database interactions
+- **Location**: `tests/api/`
+- **Examples**:
+  - Authentication API endpoints
+  - Calculator API functionality
+  - Database CRUD operations
+  - Error handling scenarios
+
+#### **3. End-to-End Tests (Playwright)**
+- **Purpose**: Test complete user workflows across browsers
+- **Browsers**: Chrome, Firefox, Safari, Mobile Chrome, Mobile Safari
+- **Location**: `tests/e2e/`
+- **Examples**:
+  - Complete user registration and login flow
+  - Calculator form submission and results display
+  - Navigation between pages
+  - Responsive design validation
+
+#### **4. Performance Tests (Lighthouse CI)**
+- **Purpose**: Ensure fast loading and optimal performance
+- **Tools**: Lighthouse CI, Playwright performance monitoring
+- **Metrics**: Core Web Vitals, Page load times, Performance scores
+
+#### **5. Security Tests**
+- **Purpose**: Identify and prevent security vulnerabilities
+- **Tools**: npm audit, audit-ci
+- **Checks**: Dependency vulnerabilities, code security issues
+
+#### **6. Accessibility Tests**
+- **Purpose**: Ensure WCAG AA compliance
+- **Tools**: Playwright accessibility features
+- **Checks**: Screen reader compatibility, keyboard navigation, color contrast
+
+### CI/CD Pipeline ✅ COMPLETE
+
+#### **GitHub Actions Workflow**
+```yaml
+# .github/workflows/test.yml
+name: Test Suite
+on: [push, pull_request]
+jobs:
+  unit-tests:
+    # Unit tests with coverage
+  e2e-tests:
+    # E2E tests across browsers
+  integration-tests:
+    # API integration tests
+  performance-tests:
+    # Lighthouse CI tests
+  security-tests:
+    # Security vulnerability scanning
 ```
 
-#### Projects
-```
-GET    /api/projects          # List user projects
-POST   /api/projects          # Create new project
-GET    /api/projects/:id      # Get project details
-PUT    /api/projects/:id      # Update project
-DELETE /api/projects/:id      # Delete project
-```
+#### **Quality Gates**
+- **Unit Test Coverage**: 90%+
+- **E2E Test Pass Rate**: 100%
+- **Security Audit**: No high/critical vulnerabilities
+- **Performance**: Lighthouse score > 90
+- **Accessibility**: WCAG AA compliance
 
-#### Scenarios
-```
-GET    /api/projects/:id/scenarios     # List project scenarios
-POST   /api/projects/:id/scenarios     # Create new scenario
-GET    /api/scenarios/:id              # Get scenario details
-PUT    /api/scenarios/:id              # Update scenario
-DELETE /api/scenarios/:id              # Delete scenario
-```
-
-#### Calculator
-```
-POST   /api/calculator/amortization    # Calculate amortization
-POST   /api/calculator/compare         # Compare scenarios
-GET    /api/calculator/validate        # Validate inputs
-```
-
-### API Response Format
-```typescript
-interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
-}
+#### **Test Commands**
+```bash
+npm run test:all          # Run all tests
+npm run test              # Unit tests only
+npm run test:coverage     # Unit tests with coverage
+npm run test:e2e          # E2E tests only
+npm run test:e2e:ui       # Interactive E2E testing
+npm run test:ci           # CI/CD pipeline
 ```
 
 ## Security Architecture
 
 ### Authentication & Authorization
-- **JWT Tokens**: Secure token-based authentication
-- **Password Hashing**: bcrypt for password security
-- **Session Management**: Secure session handling
-- **CORS**: Configured for production domains
-- **Rate Limiting**: API rate limiting to prevent abuse
+- **JWT Tokens**: Secure session management
+- **Password Hashing**: bcrypt with salt rounds
+- **Input Validation**: Zod schemas for all inputs
+- **Rate Limiting**: API endpoint protection
+- **CORS**: Cross-origin request handling
 
 ### Data Protection
-- **Input Validation**: Comprehensive input sanitization
+- **HTTPS**: Secure communication
+- **Environment Variables**: Sensitive data protection
 - **SQL Injection Prevention**: Parameterized queries with Prisma
-- **XSS Protection**: Content Security Policy headers
-- **HTTPS**: SSL/TLS encryption for all communications
-- **Data Encryption**: Encrypted data at rest and in transit
+- **XSS Prevention**: Input sanitization and output encoding
 
-### Privacy Compliance
-- **GDPR Compliance**: User data protection and rights
-- **Data Minimization**: Only collect necessary data
-- **User Consent**: Clear consent mechanisms
-- **Data Portability**: Export user data capability
+### Security Testing ✅ COMPLETE
+- **Automated Scanning**: npm audit integration
+- **Dependency Monitoring**: Regular security updates
+- **Code Analysis**: Static analysis tools
+- **Penetration Testing**: Automated security tests
 
-## Performance Optimization
+## Performance Architecture
 
-### Frontend Performance
+### Frontend Optimization
 - **Code Splitting**: Dynamic imports for route-based splitting
-- **Image Optimization**: Next.js automatic image optimization
-- **Caching**: Browser caching and CDN caching
-- **Bundle Optimization**: Tree shaking and minification
-- **Lazy Loading**: Component and route lazy loading
+- **Image Optimization**: Next.js built-in image optimization
+- **Caching**: Browser and CDN caching strategies
+- **Bundle Analysis**: Webpack bundle analyzer
 
-### Backend Performance
-- **Database Indexing**: Optimized database queries
+### Backend Optimization
+- **Database Indexing**: Optimized query performance
 - **Connection Pooling**: Efficient database connections
-- **Caching**: Redis caching for frequently accessed data
-- **Compression**: Gzip compression for API responses
-- **Load Balancing**: Horizontal scaling capability
+- **Caching**: Redis for session and data caching
+- **Compression**: Gzip compression for responses
 
-### Mobile Optimization
-- **Responsive Design**: Mobile-first approach
-- **Touch Optimization**: Touch-friendly interface elements
-- **Offline Support**: Service workers for offline functionality
-- **Progressive Web App**: PWA capabilities for mobile experience
+### Performance Testing ✅ COMPLETE
+- **Lighthouse CI**: Automated performance monitoring
+- **Load Testing**: Simulated user load testing
+- **Bundle Analysis**: Regular bundle size monitoring
+- **Core Web Vitals**: Continuous performance tracking
 
 ## Deployment Architecture
 
 ### Development Environment
-- **Local Development**: Docker Compose for local environment
+- **Local Setup**: Docker Compose for consistency
 - **Database**: Local PostgreSQL instance
 - **Hot Reloading**: Fast development iteration
-- **Environment Variables**: Secure configuration management
+- **Environment Variables**: Secure configuration
 
 ### Production Environment
-- **Hosting**: Render.com for cost-effective deployment
+- **Hosting**: Render.com deployment
 - **Database**: Render PostgreSQL service
-- **Environment**: Production-optimized configuration
-- **Monitoring**: Application and error monitoring
-- **Backup**: Automated database backups
+- **Domain**: Custom domain with SSL
+- **Monitoring**: Application and error tracking
 
-### CI/CD Pipeline
+### CI/CD Pipeline ✅ COMPLETE
 ```
 GitHub Push → GitHub Actions → Build & Test → Deploy to Render
 ```
 
-## Monitoring & Logging
+## Monitoring & Observability
 
 ### Application Monitoring
-- **Error Tracking**: Comprehensive error logging
-- **Performance Monitoring**: Response time and throughput
-- **User Analytics**: Google Analytics integration
-- **Health Checks**: Application health monitoring
+- **Error Tracking**: Sentry integration
+- **Performance Monitoring**: Real User Monitoring (RUM)
+- **Logging**: Structured logging with Winston
+- **Health Checks**: Application health endpoints
 
-### Logging Strategy
-- **Structured Logging**: JSON format for easy parsing
-- **Log Levels**: Debug, Info, Warn, Error
-- **Log Aggregation**: Centralized log management
-- **Audit Trail**: User action logging for compliance
+### Testing Monitoring ✅ COMPLETE
+- **Test Results**: Automated test reporting
+- **Coverage Reports**: Code coverage tracking
+- **Performance Metrics**: Continuous performance testing
+- **Security Alerts**: Automated security notifications
 
-## Scalability Considerations
+## Risk Management
 
-### Horizontal Scaling
-- **Stateless Design**: No server-side session storage
-- **Load Balancing**: Multiple server instances
-- **Database Scaling**: Read replicas and connection pooling
-- **CDN**: Global content delivery
+### Technical Risks
+- **Timeline Pressure**: Mitigated by flexible approach ✅
+- **Complexity Overrun**: MVP focus with iterative enhancement ✅
+- **Performance Issues**: Continuous monitoring and optimization ✅
+- **Security Vulnerabilities**: Regular security audits ✅
 
-### Vertical Scaling
-- **Resource Optimization**: Efficient memory and CPU usage
-- **Database Optimization**: Query optimization and indexing
-- **Caching Strategy**: Multi-layer caching approach
-- **Code Optimization**: Performance-focused development
-
-## Disaster Recovery
-
-### Backup Strategy
-- **Database Backups**: Automated daily backups
-- **Code Backups**: GitHub repository backup
-- **Configuration Backups**: Environment configuration backup
-- **Recovery Testing**: Regular disaster recovery testing
-
-### High Availability
-- **Redundancy**: Multiple server instances
-- **Failover**: Automatic failover mechanisms
-- **Data Replication**: Database replication for reliability
-- **Monitoring**: Proactive monitoring and alerting
-
-## Development Workflow
-
-### BMad-Method Integration
-- **Agent Workflow**: Specialized agents for different phases
-- **Documentation**: Comprehensive project documentation
-- **Quality Assurance**: Automated testing and validation
-- **Iterative Development**: Continuous improvement cycle
-
-### Agile/Scrum Process
-- **Sprint Planning**: 1-week development cycles
-- **Daily Standups**: Progress tracking and blockers
-- **Sprint Reviews**: Feature demonstration and feedback
-- **Retrospectives**: Process improvement and learning
+### Mitigation Strategies
+- **Scope Management**: Clear MVP definition and prioritization ✅
+- **Quality Focus**: Comprehensive testing and validation ✅
+- **Documentation**: Clear technical and process documentation ✅
+- **Iterative Development**: Rapid feedback and improvement cycles ✅
 
 ---
 
-*This technical architecture document provides the foundation for AmCalc development and should be updated as the system evolves.* 
+*This technical architecture document reflects the complete implementation including comprehensive testing infrastructure.* 

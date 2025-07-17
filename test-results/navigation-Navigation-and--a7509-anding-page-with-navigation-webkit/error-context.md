@@ -1,0 +1,51 @@
+# Page snapshot
+
+```yaml
+- banner:
+  - heading "AmCalc" [level=1]
+  - text: Professional Amortization Calculator
+  - navigation:
+    - link "Sign In":
+      - /url: /auth
+    - link "Get Started":
+      - /url: /auth
+- main:
+  - heading "Professional Loan Calculations Made Simple" [level=2]
+  - paragraph: Model loans, organize scenarios, and make informed financial decisions with our powerful amortization calculator.
+  - link "Try Calculator":
+    - /url: /calculator
+  - link "Create Account":
+    - /url: /auth
+  - img
+  - heading "Accurate Calculations" [level=3]
+  - paragraph: Professional-grade amortization calculations using industry-standard formulas for precise results.
+  - img
+  - heading "Project Organization" [level=3]
+  - paragraph: Create and manage projects for different loan types, keeping your calculations organized.
+  - img
+  - heading "Scenario Comparison" [level=3]
+  - paragraph: Save and compare multiple loan scenarios to find the best option for your needs.
+  - img
+  - heading "Mobile-First Design" [level=3]
+  - paragraph: Responsive interface optimized for all devices - desktop, tablet, and mobile.
+  - img
+  - heading "Secure & Private" [level=3]
+  - paragraph: Your data is protected with secure authentication and encrypted storage.
+  - img
+  - heading "Real-Time Updates" [level=3]
+  - paragraph: See your calculations update instantly as you adjust loan parameters.
+  - heading "Ready to get started?" [level=2]
+  - paragraph: Join thousands of users who trust AmCalc for their loan calculations.
+  - link "Start Calculating Now":
+    - /url: /auth
+- contentinfo:
+  - heading "AmCalc" [level=3]
+  - paragraph: Professional amortization calculator for informed financial decisions.
+  - link "Calculator":
+    - /url: /calculator
+  - link "Sign In":
+    - /url: /auth
+  - link "Settings":
+    - /url: /settings
+  - paragraph: © 2024 AmCalc. Built with Next.js, TypeScript, and Tailwind CSS.
+```

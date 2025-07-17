@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { amortizationInputsSchema } from '@/utils/validation';
 import { AmortizationInputs } from '@/types/calculator.types';
 import { AmortizationResults } from '@/types/calculator.types';
+import { useAuth } from '@/contexts/auth.context';
 
 interface CalculatorFormProps {
   onCalculate: (results: AmortizationResults) => void;
@@ -18,6 +19,8 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
   isLoading = false,
   initialValues,
 }) => {
+  const { isAuthenticated } = useAuth();
+  
   const {
     register,
     handleSubmit,
@@ -63,36 +66,48 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
     setPrincipalDisplay(raw);
   };
 
-  // Client-side calculation functions
-  const calculateMonthlyPayment = (inputs: AmortizationInputs): number => {
-    const principal = inputs.principal;
-    const monthlyRate = inputs.interestRate / 12 / 100;
-    const numberOfPayments = inputs.termYears * 12;
+  // Add mapping for payments per year
+  const paymentsPerYearMap: Record<string, number> = {
+    annually: 1,
+    semiannually: 2,
+    quarterly: 4,
+    semimonthly: 24,
+    monthly: 12,
+    biweekly: 26,
+    weekly: 52,
+  };
 
-    if (monthlyRate === 0) {
+  // Refactor calculation to use selected frequency
+  const calculatePayment = (inputs: AmortizationInputs): number => {
+    const principal = inputs.principal;
+    const paymentsPerYear = paymentsPerYearMap[inputs.paymentFrequency || 'monthly'];
+    const periodRate = inputs.interestRate / paymentsPerYear / 100;
+    const numberOfPayments = inputs.termYears * paymentsPerYear;
+
+    if (periodRate === 0) {
       return principal / numberOfPayments;
     }
 
-    const numerator = monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments);
-    const denominator = Math.pow(1 + monthlyRate, numberOfPayments) - 1;
-    
+    const numerator = periodRate * Math.pow(1 + periodRate, numberOfPayments);
+    const denominator = Math.pow(1 + periodRate, numberOfPayments) - 1;
     return principal * (numerator / denominator);
   };
 
-  const generateAmortizationSchedule = (inputs: AmortizationInputs, monthlyPayment: number): any[] => {
+  const generateAmortizationSchedule = (inputs: AmortizationInputs, payment: number): any[] => {
     const schedule: any[] = [];
     let remainingBalance = inputs.principal;
-    const monthlyRate = inputs.interestRate / 12 / 100;
-    const numberOfPayments = inputs.termYears * 12;
+    const paymentsPerYear = paymentsPerYearMap[inputs.paymentFrequency || 'monthly'];
+    const periodRate = inputs.interestRate / paymentsPerYear / 100;
+    const numberOfPayments = inputs.termYears * paymentsPerYear;
 
     for (let paymentNumber = 1; paymentNumber <= numberOfPayments; paymentNumber++) {
-      const interestPayment = remainingBalance * monthlyRate;
-      const principalPayment = monthlyPayment - interestPayment;
+      const interestPayment = remainingBalance * periodRate;
+      const principalPayment = payment - interestPayment;
       remainingBalance = Math.max(0, remainingBalance - principalPayment);
 
       schedule.push({
         paymentNumber,
-        paymentAmount: monthlyPayment,
+        paymentAmount: payment,
         principalPayment,
         interestPayment,
         remainingBalance,
@@ -103,13 +118,13 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
   };
 
   const calculateAmortization = async (inputs: AmortizationInputs): Promise<AmortizationResults> => {
-    const monthlyPayment = calculateMonthlyPayment(inputs);
-    const schedule = generateAmortizationSchedule(inputs, monthlyPayment);
-    const totalPayments = monthlyPayment * schedule.length;
+    const payment = calculatePayment(inputs);
+    const schedule = generateAmortizationSchedule(inputs, payment);
+    const totalPayments = payment * schedule.length;
     const totalInterest = totalPayments - inputs.principal;
 
     return {
-      paymentAmount: monthlyPayment,
+      paymentAmount: payment,
       totalInterest,
       totalPayments,
       schedule,
@@ -157,12 +172,14 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
         Loan Calculator
       </h2>
       
-      {/* Info message about calculation method */}
-      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-sm text-blue-800">
-          💡 Guest mode: Calculations are performed locally
-        </p>
-      </div>
+      {/* Info message about calculation method - only show for guests */}
+      {!isAuthenticated && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800">
+            💡 Guest mode: Calculations are performed locally
+          </p>
+        </div>
+      )}
       
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Principal Amount */}
@@ -177,7 +194,7 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
               min="1000"
               max="10000000"
               placeholder="200000"
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+              className={`w-full pl-6 py-3 border rounded-lg focus:ring-2ocus:ring-blue-500 focus:border-blue-500 transition-colors ${
                 errors.principal ? 'border-red-500' : 'border-gray-300'
               }`}
               value={principalDisplay}
@@ -188,7 +205,7 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
               autoComplete="off"
             />
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <span className="text-gray-500 text-sm">$</span>
+              <span className="text-gray-500">$</span>
             </div>
           </div>
           {errors.principal && (
@@ -259,9 +276,13 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
           <select
             {...register('paymentFrequency')}
             id="paymentFrequency"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2ocus:ring-blue-500 focus:border-blue-500 transition-colors"
           >
+            <option value="annually">Annually</option>
+            <option value="semiannually">Semi-Annually</option>
+            <option value="quarterly">Quarterly</option>
             <option value="monthly">Monthly</option>
+            <option value="semimonthly">Semi-Monthly</option>
             <option value="biweekly">Bi-weekly</option>
             <option value="weekly">Weekly</option>
           </select>

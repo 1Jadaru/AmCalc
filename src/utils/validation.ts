@@ -75,7 +75,15 @@ export const amortizationInputsSchema = z.object({
   principal: z.number(),
   interestRate: z.number(),
   termYears: z.number(),
-  paymentFrequency: z.string().default('monthly'),
+  paymentFrequency: z.enum([
+    'annually',
+    'semiannually',
+    'quarterly',
+    'semimonthly',
+    'monthly',
+    'biweekly',
+    'weekly',
+  ]).default('monthly'),
   startDate: z.date().optional(),
 }).superRefine((data, ctx) => {
   if (data.principal < 1000) {

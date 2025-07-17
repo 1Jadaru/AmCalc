@@ -46,15 +46,15 @@ export const AmortizationTable: React.FC<AmortizationTableProps> = ({
   };
 
   const exportToCSV = () => {
-    const headers = ['Payment #', 'Payment Amount', 'Principal', 'Interest', 'Remaining Balance'];
+    const headers = ['Payment #,Payment Amount', 'Principal', 'Interest', 'Remaining Balance'];
     const csvContent = [
       headers.join(','),
       ...schedule.map(row => [
         row.paymentNumber,
-        row.paymentAmount,
-        row.principalPayment,
-        row.interestPayment,
-        row.remainingBalance,
+        Math.round(row.paymentAmount * 100) / 100,
+        Math.round(row.principalPayment * 100) / 100,
+        Math.round(row.interestPayment * 100) / 100,
+        Math.round(row.remainingBalance * 100) / 100,
       ].join(','))
     ].join('\n');
 

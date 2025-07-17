@@ -1,10 +1,19 @@
 // Calculator Types and Interfaces for AmCalc
 
+export type PaymentFrequency =
+  | 'annually'
+  | 'semiannually'
+  | 'quarterly'
+  | 'semimonthly'
+  | 'monthly'
+  | 'biweekly'
+  | 'weekly';
+
 export interface AmortizationInputs {
   principal: number;        // Loan amount (e.g., 200000)
   interestRate: number;     // Annual interest rate (e.g., 3.5)
   termYears: number;        // Loan term in years (e.g., 30)
-  paymentFrequency?: string; // Default: 'monthly'
+  paymentFrequency?: PaymentFrequency; // Default: 'monthly'
   startDate?: Date;         // Optional loan start date
 }
 

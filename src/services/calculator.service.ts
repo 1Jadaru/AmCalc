@@ -8,6 +8,17 @@ import {
 } from '../types/calculator.types';
 import { amortizationInputsSchema } from '../utils/validation';
 
+// Add mapping for payments per year
+const paymentsPerYearMap: Record<string, number> = {
+  annually: 1,
+  semiannually: 2,
+  quarterly: 4,
+  semimonthly: 24,
+  monthly: 12,
+  biweekly: 26,
+  weekly: 52,
+};
+
 export class CalculatorService implements CalculatorServiceInterface {
   private calculationCache = new Map<string, AmortizationResults>();
 
@@ -28,13 +39,13 @@ export class CalculatorService implements CalculatorServiceInterface {
     }
 
     // Perform calculations
-    const monthlyPayment = this.calculateMonthlyPayment(inputs);
-    const schedule = this.generateAmortizationSchedule(inputs, monthlyPayment);
-    const totalPayments = monthlyPayment * schedule.length;
+    const payment = this.calculatePayment(inputs);
+    const schedule = this.generateAmortizationSchedule(inputs, payment);
+    const totalPayments = payment * schedule.length;
     const totalInterest = totalPayments - inputs.principal;
 
     const results: AmortizationResults = {
-      paymentAmount: monthlyPayment,
+      paymentAmount: payment,
       totalInterest,
       totalPayments,
       schedule,
@@ -43,6 +54,7 @@ export class CalculatorService implements CalculatorServiceInterface {
         interestRate: inputs.interestRate,
         termYears: inputs.termYears,
         numberOfPayments: schedule.length,
+        paymentFrequency: inputs.paymentFrequency || 'monthly',
       },
     };
 
@@ -53,22 +65,28 @@ export class CalculatorService implements CalculatorServiceInterface {
   }
 
   /**
-   * Calculate monthly payment using standard amortization formula
-   * P = L[c(1 + c)^n]/[(1 + c)^n - 1]
+   * Calculate payment using standard amortization formula for any frequency
    */
-  calculateMonthlyPayment(inputs: AmortizationInputs): number {
+  calculatePayment(inputs: AmortizationInputs): number {
     const principal = inputs.principal;
-    const monthlyRate = inputs.interestRate / 12 / 100;
-    const numberOfPayments = inputs.termYears * 12;
+    const paymentsPerYear = paymentsPerYearMap[inputs.paymentFrequency || 'monthly'];
+    const periodRate = inputs.interestRate / paymentsPerYear / 100;
+    const numberOfPayments = inputs.termYears * paymentsPerYear;
 
-    if (monthlyRate === 0) {
+    if (periodRate === 0) {
       return principal / numberOfPayments;
     }
 
-    const numerator = monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments);
-    const denominator = Math.pow(1 + monthlyRate, numberOfPayments) - 1;
-    
+    const numerator = periodRate * Math.pow(1 + periodRate, numberOfPayments);
+    const denominator = Math.pow(1 + periodRate, numberOfPayments) - 1;
     return principal * (numerator / denominator);
+  }
+
+  /**
+   * For interface compatibility: calculate monthly payment (legacy)
+   */
+  calculateMonthlyPayment(inputs: AmortizationInputs): number {
+    return this.calculatePayment({ ...inputs, paymentFrequency: 'monthly' });
   }
 
   /**
@@ -89,22 +107,23 @@ export class CalculatorService implements CalculatorServiceInterface {
   }
 
   /**
-   * Generate complete amortization schedule
+   * Generate complete amortization schedule for any frequency
    */
-  private generateAmortizationSchedule(inputs: AmortizationInputs, monthlyPayment: number): PaymentRow[] {
+  private generateAmortizationSchedule(inputs: AmortizationInputs, payment: number): PaymentRow[] {
     const schedule: PaymentRow[] = [];
     let remainingBalance = inputs.principal;
-    const monthlyRate = inputs.interestRate / 12 / 100;
-    const numberOfPayments = inputs.termYears * 12;
+    const paymentsPerYear = paymentsPerYearMap[inputs.paymentFrequency || 'monthly'];
+    const periodRate = inputs.interestRate / paymentsPerYear / 100;
+    const numberOfPayments = inputs.termYears * paymentsPerYear;
 
     for (let paymentNumber = 1; paymentNumber <= numberOfPayments; paymentNumber++) {
-      const interestPayment = remainingBalance * monthlyRate;
-      const principalPayment = monthlyPayment - interestPayment;
+      const interestPayment = remainingBalance * periodRate;
+      const principalPayment = payment - interestPayment;
       remainingBalance = Math.max(0, remainingBalance - principalPayment);
 
       schedule.push({
         paymentNumber,
-        paymentAmount: monthlyPayment,
+        paymentAmount: payment,
         principalPayment,
         interestPayment,
         remainingBalance,

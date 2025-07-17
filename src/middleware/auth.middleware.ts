@@ -12,8 +12,15 @@ export interface AuthenticatedRequest extends NextRequest {
  */
 export async function authMiddleware(request: NextRequest): Promise<NextResponse | null> {
   try {
+    // First try to get token from Authorization header
     const authHeader = request.headers.get('authorization');
-    const token = extractTokenFromHeader(authHeader || undefined);
+    let token = extractTokenFromHeader(authHeader || undefined);
+
+    // If no token in header, try to get from cookie
+    if (!token) {
+      const accessTokenCookie = request.cookies.get('accessToken');
+      token = accessTokenCookie?.value || null;
+    }
 
     if (!token) {
       return NextResponse.json(
@@ -31,21 +38,22 @@ export async function authMiddleware(request: NextRequest): Promise<NextResponse
     }
 
     const user = await AuthService.getUserById(decoded.userId);
-    if (!user || !user.isActive) {
+    if (!user) {
       return NextResponse.json(
-        { success: false, error: 'Invalid token' },
+        { success: false, error: 'User not found' },
         { status: 401 }
       );
     }
-
-    // Add user to request context
+    
+    // Add user to request
     (request as AuthenticatedRequest).user = user;
     
-    return null; // Continue to next middleware/handler
+    return null; // Continue to the next middleware/handler
   } catch (error) {
+    console.error('[AUTH] Middleware error:', error);
     return NextResponse.json(
       { success: false, error: 'Authentication failed' },
-      { status: 401 }
+      { status: 500 }
     );
   }
 }
@@ -55,8 +63,15 @@ export async function authMiddleware(request: NextRequest): Promise<NextResponse
  */
 export async function optionalAuthMiddleware(request: NextRequest): Promise<NextResponse | null> {
   try {
+    // First try to get token from Authorization header
     const authHeader = request.headers.get('authorization');
-    const token = extractTokenFromHeader(authHeader || undefined);
+    let token = extractTokenFromHeader(authHeader || undefined);
+
+    // If no token in header, try to get from cookie
+    if (!token) {
+      const accessTokenCookie = request.cookies.get('accessToken');
+      token = accessTokenCookie?.value || null;
+    }
 
     if (!token) {
       return null; // Continue without authentication

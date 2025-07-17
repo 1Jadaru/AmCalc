@@ -197,7 +197,8 @@ src/
 │   │   ├── Button.tsx
 │   │   ├── Input.tsx
 │   │   ├── Card.tsx
-│   │   └── Modal.tsx
+│   │   ├── Modal.tsx
+│   │   └── SaveToProjectModal.tsx  # Project save modal ✅
 │   ├── forms/                 # Form components ✅
 │   │   ├── auth/              # Authentication forms ✅
 │   │   │   ├── LoginForm.tsx
@@ -222,6 +223,7 @@ src/
 │   ├── auth/                  # Authentication pages ✅
 │   ├── dashboard/             # User dashboard ✅
 │   ├── projects/              # Projects page ✅
+│   ├── projects/[id]/         # Project detail page ✅
 │   └── api/                   # API routes ✅
 ├── hooks/                     # Custom React hooks ✅
 ├── utils/                     # Utility functions ✅
@@ -241,10 +243,17 @@ src/
 │   │   ├── logout/            # User logout ✅
 │   │   ├── me/                # Get current user ✅
 │   │   └── reset-password/    # Password reset ✅
-│   ├── calculator/            # Calculation endpoints ✅
-│   │   └── amortization/      # Amortization calculation ✅
 │   ├── projects/              # Project management ✅
-│   └── scenarios/             # Scenario management ✅
+│   │   ├── route.ts           # GET, POST projects ✅
+│   │   └── [id]/              # Project CRUD operations ✅
+│   │       ├── route.ts       # GET, PUT, DELETE project ✅
+│   │       └── calculations/  # Save calculations ✅
+│   │           └── route.ts   # POST calculations ✅
+│   ├── scenarios/             # Scenario management ✅
+│   │   └── [id]/              # Scenario operations ✅
+│   │       └── route.ts       # DELETE scenarios ✅
+│   └── calculator/            # Calculation endpoints ✅
+│       └── amortization/      # Amortization calculation ✅
 ├── services/                  # Business logic ✅
 │   ├── auth.service.ts        # Authentication service ✅
 │   ├── calculator.service.ts  # Calculator service ✅
@@ -284,6 +293,54 @@ src/test/                      # Unit Tests ✅
 │   └── security.test.ts       # Security tests ✅
 └── setup.ts                   # Unit test setup ✅
 ```
+
+## API Architecture ✅ COMPLETE
+
+### RESTful API Endpoints
+
+#### **Authentication Endpoints**
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+- `POST /api/auth/logout` - User logout
+- `GET /api/auth/me` - Get current user
+- `POST /api/auth/reset-password` - Password reset
+
+#### **Project Management Endpoints**
+- `GET /api/projects` - List user's projects
+- `POST /api/projects` - Create new project
+- `GET /api/projects/[id]` - Get project with scenarios
+- `PUT /api/projects/[id]` - Update project details
+- `DELETE /api/projects/[id]` - Delete project and all scenarios
+
+#### **Scenario Management Endpoints**
+- `POST /api/projects/[id]/calculations` - Save calculation to project
+- `DELETE /api/scenarios/[id]` - Delete individual scenario
+
+#### **Calculator Endpoints**
+- `POST /api/calculator/amortization` - Calculate amortization schedule
+
+### API Response Format
+```typescript
+// Success Response
+{
+  "success": true,
+  "data": { ... },
+  "message": "Operation completed successfully"
+}
+
+// Error Response
+{
+  "success": false,
+  "error": "Error message",
+  "details": "Additional error details"
+}
+```
+
+### Authentication Flow
+1. **Registration**: User creates account with email/password
+2. **Login**: User authenticates and receives JWT token
+3. **Authorization**: JWT token validated on protected routes
+4. **Session Management**: Token refresh and logout handling
 
 ## Data Model
 
@@ -327,7 +384,7 @@ CREATE TABLE projects (
 );
 ```
 
-#### Scenarios Table
+#### Scenarios Table ✅ UPDATED
 ```sql
 CREATE TABLE scenarios (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -336,10 +393,11 @@ CREATE TABLE scenarios (
   principal DECIMAL(15,2) NOT NULL,
   interest_rate DECIMAL(5,4) NOT NULL,
   term_years INTEGER NOT NULL,
+  payment_frequency VARCHAR(50) NOT NULL DEFAULT 'monthly',
   payment_amount DECIMAL(15,2),
   total_interest DECIMAL(15,2),
   total_payments DECIMAL(15,2),
-  amortization_data JSONB,
+  amortization_schedule JSONB,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -349,6 +407,13 @@ CREATE TABLE scenarios (
 - **User** → **Projects** (One-to-Many)
 - **Project** → **Scenarios** (One-to-Many)
 - **User** → **Scenarios** (One-to-Many through Projects)
+
+### Data Validation ✅ COMPLETE
+- **Interest Rate**: Stored as decimal (0.0525 for 5.25%)
+- **Payment Frequency**: All supported frequencies (monthly, biweekly, weekly, quarterly, semiannually, annually)
+- **Principal Amount**: Decimal precision for accurate calculations
+- **Term Years**: Integer validation
+- **Cascade Deletes**: Automatic cleanup of related data
 
 ## Testing Strategy ✅ COMPLETE
 
@@ -516,13 +581,15 @@ GitHub Push → GitHub Actions → Build & Test → Deploy to Render
 - **Complexity Overrun**: MVP focus with iterative enhancement ✅
 - **Performance Issues**: Continuous monitoring and optimization ✅
 - **Security Vulnerabilities**: Regular security audits ✅
+- **Data Integrity**: Addressed with comprehensive validation ✅
 
 ### Mitigation Strategies
 - **Scope Management**: Clear MVP definition and prioritization ✅
 - **Quality Focus**: Comprehensive testing and validation ✅
 - **Documentation**: Clear technical and process documentation ✅
 - **Iterative Development**: Rapid feedback and improvement cycles ✅
+- **Error Handling**: Robust validation and user feedback ✅
 
 ---
 
-*This technical architecture document reflects the complete implementation including comprehensive testing infrastructure.* 
+*This technical architecture document reflects the complete implementation including comprehensive testing infrastructure and full CRUD operations for project and scenario management.* 

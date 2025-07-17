@@ -27,6 +27,7 @@ export interface AmortizationResults {
     interestRate: number;
     termYears: number;
     numberOfPayments: number;
+    paymentFrequency: PaymentFrequency;
   };
 }
 

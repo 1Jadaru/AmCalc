@@ -54,6 +54,7 @@ export class CalculatorService implements CalculatorServiceInterface {
         interestRate: inputs.interestRate,
         termYears: inputs.termYears,
         numberOfPayments: schedule.length,
+        paymentFrequency: inputs.paymentFrequency || 'monthly',
       },
     };
 

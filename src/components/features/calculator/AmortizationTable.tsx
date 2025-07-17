@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { PaymentRow } from '@/types/calculator.types';
+import { PaymentRow, AmortizationResults } from '@/types/calculator.types';
+import SaveToProjectModal from '../../ui/SaveToProjectModal';
 
 interface AmortizationTableProps {
   schedule: PaymentRow[];
+  results?: AmortizationResults;
   isLoading?: boolean;
   currentPage?: number;
   itemsPerPage?: number;
@@ -13,6 +15,7 @@ interface AmortizationTableProps {
 
 export const AmortizationTable: React.FC<AmortizationTableProps> = ({
   schedule,
+  results,
   isLoading = false,
   currentPage = 1,
   itemsPerPage = 12,
@@ -20,6 +23,7 @@ export const AmortizationTable: React.FC<AmortizationTableProps> = ({
 }) => {
   const [page, setPage] = useState(currentPage);
   const [itemsPerPageState, setItemsPerPageState] = useState(itemsPerPage);
+  const [showSaveModal, setShowSaveModal] = useState(false);
 
   const totalPages = Math.ceil(schedule.length / itemsPerPageState);
   const startIndex = (page - 1) * itemsPerPageState;
@@ -123,6 +127,13 @@ export const AmortizationTable: React.FC<AmortizationTableProps> = ({
             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
           >
             Export CSV
+          </button>
+          {/* Save to Project button */}
+          <button
+            onClick={() => setShowSaveModal(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
+            Save to Project
           </button>
         </div>
       </div>
@@ -231,6 +242,12 @@ export const AmortizationTable: React.FC<AmortizationTableProps> = ({
           </div>
         </div>
       )}
+      <SaveToProjectModal
+        open={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        schedule={schedule}
+        results={results}
+      />
     </div>
   );
 }; 

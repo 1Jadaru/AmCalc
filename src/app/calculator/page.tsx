@@ -136,6 +136,7 @@ export default function CalculatorPage() {
             <div className="mt-8">
               <AmortizationTable
                 schedule={results.schedule}
+                results={results}
                 isLoading={isLoading}
               />
             </div>

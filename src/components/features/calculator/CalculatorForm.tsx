@@ -133,6 +133,7 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
         interestRate: inputs.interestRate,
         termYears: inputs.termYears,
         numberOfPayments: schedule.length,
+        paymentFrequency: inputs.paymentFrequency || 'monthly',
       },
     };
   };

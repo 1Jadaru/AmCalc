@@ -1,4 +1,4 @@
-import { PrismaClient } from '../generated/prisma';
+import { PrismaClient } from '@prisma/client';
 import { hashPassword, verifyPassword, generateAccessToken, generateRefreshToken, hashToken, generateResetToken, verifyToken } from '../utils/auth.utils';
 import { RegisterCredentials, LoginCredentials, User } from '../types/auth.types';
 

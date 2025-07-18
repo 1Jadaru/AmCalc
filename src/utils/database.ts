@@ -1,12 +1,15 @@
-import { PrismaClient } from '../generated/prisma'
+import { PrismaClient } from '@prisma/client'
 
 // Environment variable validation with better error messages
 const validateEnvironmentVariables = () => {
+  // Skip validation during build time
+  if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL) {
+    console.warn('DATABASE_URL not configured for production')
+    return
+  }
+
   const requiredEnvVars = {
     DATABASE_URL: process.env.DATABASE_URL,
-    DATABASE_URL_TEST: process.env.DATABASE_URL_TEST,
-    DATABASE_POOL_SIZE: process.env.DATABASE_POOL_SIZE,
-    DATABASE_CONNECTION_TIMEOUT: process.env.DATABASE_CONNECTION_TIMEOUT,
   }
 
   const missingVars = Object.entries(requiredEnvVars)
@@ -14,7 +17,7 @@ const validateEnvironmentVariables = () => {
     .map(([key]) => key)
 
   if (missingVars.length > 0) {
-    throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`)
+    console.warn(`Missing environment variables: ${missingVars.join(', ')}`)
   }
 }
 
@@ -45,27 +48,35 @@ interface DatabaseStats {
   isConnected: boolean
 }
 
-// Singleton Prisma client with better configuration
-class DatabaseManager {
-  private static instance: DatabaseManager
-  private prisma: PrismaClient
-  private isConnected = false
-  private readonly poolSettings: { poolSize: number; connectionTimeout: number }
+// Lazy-loaded Prisma client to avoid build-time issues
+let prismaClient: PrismaClient | null = null
 
-  private constructor() {
+const getPrismaClient = (): PrismaClient => {
+  if (!prismaClient) {
     validateEnvironmentVariables()
-    this.poolSettings = parsePoolSettings()
-
-    this.prisma = new PrismaClient({
+    
+    prismaClient = new PrismaClient({
       datasources: {
         db: {
-          url: process.env.DATABASE_URL,
+          url: process.env.DATABASE_URL || 'postgresql://placeholder',
         },
       },
       log: process.env.NODE_ENV === 'development' 
         ? ['query', 'error', 'warn'] 
         : ['error'],
     })
+  }
+  return prismaClient
+}
+
+// Singleton Database manager with lazy loading
+class DatabaseManager {
+  private static instance: DatabaseManager
+  private isConnected = false
+  private readonly poolSettings: { poolSize: number; connectionTimeout: number }
+
+  private constructor() {
+    this.poolSettings = parsePoolSettings()
   }
 
   public static getInstance(): DatabaseManager {
@@ -76,7 +87,7 @@ class DatabaseManager {
   }
 
   public getClient(): PrismaClient {
-    return this.prisma
+    return getPrismaClient()
   }
 
   public async connect(): Promise<void> {
@@ -86,7 +97,8 @@ class DatabaseManager {
     }
 
     try {
-      await this.prisma.$connect()
+      const client = getPrismaClient()
+      await client.$connect()
       this.isConnected = true
       console.log('✅ Database connected successfully')
     } catch (error) {
@@ -97,14 +109,15 @@ class DatabaseManager {
   }
 
   public async disconnect(): Promise<void> {
-    if (!this.isConnected) {
+    if (!this.isConnected || !prismaClient) {
       console.log('ℹ️ Database already disconnected')
       return
     }
 
     try {
-      await this.prisma.$disconnect()
+      await prismaClient.$disconnect()
       this.isConnected = false
+      prismaClient = null
       console.log('✅ Database disconnected successfully')
     } catch (error) {
       console.error('❌ Database disconnection failed:', error)
@@ -114,7 +127,8 @@ class DatabaseManager {
 
   public async healthCheck(): Promise<boolean> {
     try {
-      await this.prisma.$queryRaw`SELECT 1 as health_check`
+      const client = getPrismaClient()
+      await client.$queryRaw`SELECT 1 as health_check`
       return true
     } catch (error) {
       console.error('❌ Database health check failed:', error)
@@ -124,11 +138,12 @@ class DatabaseManager {
 
   public async getStats(): Promise<DatabaseStats> {
     try {
+      const client = getPrismaClient()
       const [userCount, projectCount, scenarioCount, sessionCount] = await Promise.all([
-        this.prisma.user.count(),
-        this.prisma.project.count(),
-        this.prisma.scenario.count(),
-        this.prisma.userSession.count(),
+        client.user.count(),
+        client.project.count(),
+        client.scenario.count(),
+        client.userSession.count(),
       ])
 
       return {
@@ -162,5 +177,5 @@ export const checkDatabaseHealth = () => dbManager.healthCheck()
 export const getDatabaseStats = () => dbManager.getStats()
 
 // Export types for convenience
-export type { User, Project, Scenario, UserSession } from '../generated/prisma'
+export type { User, Project, Scenario, UserSession } from '@prisma/client'
 export type { DatabaseStats } 

@@ -1,26 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthService } from '../../../../services/auth.service';
-import { loginSchema } from '../../../../utils/validation';
-import { LoginFormData } from '../../../../utils/validation';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
-    // Validate request body
-    const validationResult = loginSchema.safeParse(body);
-    if (!validationResult.success) {
+    const { email, password } = body;
+
+    // Validate input
+    if (!email || !password) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Validation failed',
-          details: validationResult.error.issues 
-        },
+        { success: false, error: 'Email and password are required' },
         { status: 400 }
       );
     }
-
-    const { email, password }: LoginFormData = validationResult.data;
 
     // Login user
     const { user, accessToken, refreshToken } = await AuthService.loginUser({
@@ -28,21 +20,22 @@ export async function POST(request: NextRequest) {
       password
     });
 
-    // Set secure cookies
+    // Create response
     const response = NextResponse.json(
       { 
         success: true, 
         message: 'Login successful',
-        data: { 
-          user,
-          token: accessToken,
-          refreshToken 
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName
         }
       },
       { status: 200 }
     );
 
-    // Set secure HTTP-only cookies
+    // Set cookies
     response.cookies.set('accessToken', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

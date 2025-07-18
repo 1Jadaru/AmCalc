@@ -1,13 +1,15 @@
-﻿// Dynamic Prisma import to avoid build-time issues
-let prisma: any = null;
+﻿// Alternative approach to avoid Prisma query engine issues
+import { PrismaClient } from '@prisma/client'
 
-const getPrisma = async () => {
-  if (!prisma) {
-    const { PrismaClient } = await import('@prisma/client');
-    prisma = new PrismaClient();
-  }
-  return prisma;
-};
+// Create Prisma client with explicit configuration
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
+  log: ['query', 'info', 'warn', 'error'],
+})
 
 // Validation helpers
 const validateEmail = (email: string): boolean => {
@@ -57,8 +59,9 @@ async function main() {
   console.log('🚀 Starting database seeding...')
 
   try {
-    // Get Prisma client
-    const prismaClient = await getPrisma();
+    // Test database connection first
+    await prisma.$connect()
+    console.log('✅ Database connection established')
 
     // Validate environment
     if (!process.env.DATABASE_URL) {
@@ -71,7 +74,7 @@ async function main() {
       throw new Error('Invalid email format for demo user')
     }
 
-    const user = await prismaClient.user.upsert({
+    const user = await prisma.user.upsert({
       where: { email: userEmail },
       update: {},
       create: {
@@ -87,7 +90,7 @@ async function main() {
     console.log('✅ Created demo user:', user.email)
 
     // Create sample project
-    const project = await prismaClient.project.upsert({
+    const project = await prisma.project.upsert({
       where: { 
         id: '550e8400-e29b-41d4-a716-446655440000'
       },
@@ -159,7 +162,7 @@ async function main() {
         const totalPaymentsAmount = monthlyPayment * totalPayments
         const totalInterest = totalPaymentsAmount - data.principal
 
-        return prismaClient.scenario.upsert({
+        return prisma.scenario.upsert({
           where: { id: data.id },
           update: {},
           create: {
@@ -189,7 +192,7 @@ async function main() {
     console.log('✅ Created sample scenarios:', scenarios.map(s => s.name))
 
     // Create sample user session
-    await prismaClient.userSession.upsert({
+    await prisma.userSession.upsert({
       where: { 
         id: '550e8400-e29b-41d4-a716-446655440004'
       },
@@ -211,9 +214,7 @@ async function main() {
     console.error('❌ Error during seeding:', error)
     throw error
   } finally {
-    if (prisma) {
-      await prisma.$disconnect()
-    }
+    await prisma.$disconnect()
   }
 }
 

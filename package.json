@@ -23,7 +23,8 @@
     "db:migrate:deploy": "prisma migrate deploy",
     "db:migrate:reset": "prisma migrate reset",
     "db:studio": "prisma studio",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "db:seed:sql": "tsx prisma/seed-sql.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
@@ -31,6 +32,7 @@
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
     "next": "15.4.1",
+    "pg": "^8.11.3",
     "react": "^18",
     "react-dom": "^18",
     "react-hook-form": "^7.50.1",
@@ -52,6 +54,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/jest": "^29.5.12",
     "@types/jsonwebtoken": "^9.0.6",
+    "@types/pg": "^8.10.9",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

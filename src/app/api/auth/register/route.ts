@@ -1,25 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthService } from '../../../../services/auth.service';
-import { registerApiSchema, RegisterApiData } from '../../../../utils/validation';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
-    // Validate request body using API schema (no confirmPassword)
-    const validationResult = registerApiSchema.safeParse(body);
-    if (!validationResult.success) {
+    const { email, password, firstName, lastName } = body;
+
+    // Validate input
+    if (!email || !password || !firstName || !lastName) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Validation failed',
-          details: validationResult.error.issues 
-        },
+        { success: false, error: 'All fields are required' },
         { status: 400 }
       );
     }
-
-    const { email, password, firstName, lastName }: RegisterApiData = validationResult.data;
 
     // Register user
     const user = await AuthService.registerUser({
@@ -33,7 +26,12 @@ export async function POST(request: NextRequest) {
       { 
         success: true, 
         message: 'User registered successfully',
-        data: { user }
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName
+        }
       },
       { status: 201 }
     );

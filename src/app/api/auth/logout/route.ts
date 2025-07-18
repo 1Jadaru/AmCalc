@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     const user = getAuthenticatedUser(request as any);
     const refreshToken = request.cookies.get('refreshToken')?.value;
 
-    if (refreshToken) {
+    if (refreshToken && user) {
       // Logout user and invalidate session
       await AuthService.logoutUser(user.id, refreshToken);
     }

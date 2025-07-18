@@ -10,24 +10,13 @@ import { useAuth } from '@/contexts/auth.context';
 
 export default function CalculatorPage() {
   const [results, setResults] = useState<AmortizationResults | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
 
   const handleCalculate = (calculationResults: AmortizationResults) => {
     setResults(calculationResults);
-    setError(null);
   };
 
-  const handleFormSubmit = async () => {
-    setIsLoading(true);
-    setError(null);
-  };
 
-  const handleFormError = (errorMessage: string) => {
-    setError(errorMessage);
-    setIsLoading(false);
-  };
 
   const handleLogout = async () => {
     try {
@@ -107,7 +96,7 @@ export default function CalculatorPage() {
             </h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Calculate your monthly mortgage payments and view a complete amortization schedule. 
-              See how much interest you'll pay over the life of your loan.
+              See how much interest you&apos;ll pay over the life of your loan.
             </p>
           </div>
 
@@ -117,7 +106,7 @@ export default function CalculatorPage() {
             <div className="order-1 lg:order-1">
               <CalculatorForm
                 onCalculate={handleCalculate}
-                isLoading={isLoading}
+                isLoading={false}
               />
             </div>
 
@@ -125,8 +114,8 @@ export default function CalculatorPage() {
             <div className="order-2 lg:order-2">
               <ResultsDisplay
                 results={results}
-                isLoading={isLoading}
-                error={error}
+                isLoading={false}
+                error={null}
               />
             </div>
           </div>
@@ -137,7 +126,7 @@ export default function CalculatorPage() {
               <AmortizationTable
                 schedule={results.schedule}
                 results={results}
-                isLoading={isLoading}
+                isLoading={false}
               />
             </div>
           )}

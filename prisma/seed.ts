@@ -1,6 +1,13 @@
-﻿import { PrismaClient } from '@prisma/client'
+﻿// Dynamic Prisma import to avoid build-time issues
+let prisma: any = null;
 
-const prisma = new PrismaClient()
+const getPrisma = async () => {
+  if (!prisma) {
+    const { PrismaClient } = await import('@prisma/client');
+    prisma = new PrismaClient();
+  }
+  return prisma;
+};
 
 // Validation helpers
 const validateEmail = (email: string): boolean => {
@@ -47,9 +54,12 @@ const generateAmortizationSchedule = (principal: number, rate: number, termYears
 }
 
 async function main() {
-  console.log('ðŸŒ± Starting database seeding...')
+  console.log('🚀 Starting database seeding...')
 
   try {
+    // Get Prisma client
+    const prismaClient = await getPrisma();
+
     // Validate environment
     if (!process.env.DATABASE_URL) {
       throw new Error('DATABASE_URL environment variable is required')
@@ -61,7 +71,7 @@ async function main() {
       throw new Error('Invalid email format for demo user')
     }
 
-    const user = await prisma.user.upsert({
+    const user = await prismaClient.user.upsert({
       where: { email: userEmail },
       update: {},
       create: {
@@ -74,10 +84,10 @@ async function main() {
       },
     })
 
-    console.log('âœ… Created demo user:', user.email)
+    console.log('✅ Created demo user:', user.email)
 
     // Create sample project
-    const project = await prisma.project.upsert({
+    const project = await prismaClient.project.upsert({
       where: { 
         id: '550e8400-e29b-41d4-a716-446655440000'
       },
@@ -91,7 +101,7 @@ async function main() {
       },
     })
 
-    console.log('âœ… Created sample project:', project.name)
+    console.log('✅ Created sample project:', project.name)
 
     // Create sample scenarios with validation
     const scenarioData = [
@@ -149,7 +159,7 @@ async function main() {
         const totalPaymentsAmount = monthlyPayment * totalPayments
         const totalInterest = totalPaymentsAmount - data.principal
 
-        return prisma.scenario.upsert({
+        return prismaClient.scenario.upsert({
           where: { id: data.id },
           update: {},
           create: {
@@ -176,10 +186,10 @@ async function main() {
       })
     )
 
-    console.log('âœ… Created sample scenarios:', scenarios.map(s => s.name))
+    console.log('✅ Created sample scenarios:', scenarios.map(s => s.name))
 
     // Create sample user session
-    await prisma.userSession.upsert({
+    await prismaClient.userSession.upsert({
       where: { 
         id: '550e8400-e29b-41d4-a716-446655440004'
       },
@@ -194,19 +204,21 @@ async function main() {
 
     console.log('✅ Created sample user session')
 
-    console.log('ðŸŽ‰ Database seeding completed successfully!')
-    console.log(`ðŸ“Š Created: 1 user, 1 project, ${scenarios.length} scenarios, 1 session`)
+    console.log('🎉 Database seeding completed successfully!')
+    console.log(`📊 Created: 1 user, 1 project, ${scenarios.length} scenarios, 1 session`)
 
   } catch (error) {
-    console.error('âŒ Error during seeding:', error)
+    console.error('❌ Error during seeding:', error)
     throw error
   } finally {
-    await prisma.$disconnect()
+    if (prisma) {
+      await prisma.$disconnect()
+    }
   }
 }
 
 main()
   .catch((e) => {
-    console.error('âŒ Fatal error during seeding:', e)
+    console.error('❌ Fatal error during seeding:', e)
     process.exit(1)
   }) 

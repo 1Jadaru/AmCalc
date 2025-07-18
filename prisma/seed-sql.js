@@ -164,13 +164,12 @@ async function main() {
 
     // Create sample user session
     await client.query(`
-      INSERT INTO "UserSession" (id, user_id, token_hash, expires_at, created_at, updated_at)
+      INSERT INTO "UserSession" (id, user_id, token_hash, expires_at, created_at)
       VALUES (
         '550e8400-e29b-41d4-a716-446655440004',
         $1,
         '$2b$10$example.session.token.hash',
         NOW() + INTERVAL '24 hours',
-        NOW(),
         NOW()
       )
       ON CONFLICT (id) DO NOTHING

@@ -34,8 +34,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const data = await response.json();
         setUser(data.data.user);
         setIsAuthenticated(true);
+      } else if (response.status === 401) {
+        // User is not authenticated - this is expected behavior
+        setUser(null);
+        setIsAuthenticated(false);
       } else {
-        // User is not authenticated, which is normal
+        // Other error status codes
+        console.error('Auth check failed with status:', response.status);
         setUser(null);
         setIsAuthenticated(false);
       }

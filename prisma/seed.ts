@@ -1,4 +1,4 @@
-import { PrismaClient } from '../src/generated/prisma'
+﻿import { PrismaClient } from '../src/generated/prisma'
 
 const prisma = new PrismaClient()
 
@@ -47,7 +47,7 @@ const generateAmortizationSchedule = (principal: number, rate: number, termYears
 }
 
 async function main() {
-  console.log('🌱 Starting database seeding...')
+  console.log('ðŸŒ± Starting database seeding...')
 
   try {
     // Validate environment
@@ -74,7 +74,7 @@ async function main() {
       },
     })
 
-    console.log('✅ Created demo user:', user.email)
+    console.log('âœ… Created demo user:', user.email)
 
     // Create sample project
     const project = await prisma.project.upsert({
@@ -91,7 +91,7 @@ async function main() {
       },
     })
 
-    console.log('✅ Created sample project:', project.name)
+    console.log('âœ… Created sample project:', project.name)
 
     // Create sample scenarios with validation
     const scenarioData = [
@@ -176,10 +176,10 @@ async function main() {
       })
     )
 
-    console.log('✅ Created sample scenarios:', scenarios.map(s => s.name))
+    console.log('âœ… Created sample scenarios:', scenarios.map(s => s.name))
 
     // Create sample user session
-    const session = await prisma.userSession.upsert({
+    await prisma.userSession.upsert({
       where: { 
         id: '550e8400-e29b-41d4-a716-446655440004'
       },
@@ -194,11 +194,11 @@ async function main() {
 
     console.log('✅ Created sample user session')
 
-    console.log('🎉 Database seeding completed successfully!')
-    console.log(`📊 Created: 1 user, 1 project, ${scenarios.length} scenarios, 1 session`)
+    console.log('ðŸŽ‰ Database seeding completed successfully!')
+    console.log(`ðŸ“Š Created: 1 user, 1 project, ${scenarios.length} scenarios, 1 session`)
 
   } catch (error) {
-    console.error('❌ Error during seeding:', error)
+    console.error('âŒ Error during seeding:', error)
     throw error
   } finally {
     await prisma.$disconnect()
@@ -207,6 +207,6 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error('❌ Fatal error during seeding:', e)
+    console.error('âŒ Fatal error during seeding:', e)
     process.exit(1)
   }) 

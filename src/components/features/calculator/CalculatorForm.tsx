@@ -150,22 +150,9 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
     }
   };
 
-  const formatCurrency = (value: string) => {
-    const numValue = parseFloat(value.replace(/[^0-9.]/g, ''));
-    if (isNaN(numValue)) return '';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(numValue);
-  };
 
-  const formatPercentage = (value: string) => {
-    const numValue = parseFloat(value.replace(/[^0-9.]/g, ''));
-    if (isNaN(numValue)) return '';
-    return `${numValue.toFixed(2)}%`;
-  };
+
+
 
   return (
     <div className="w-full max-w-md mx-auto bg-white rounded-lg shadow-lg p-6">

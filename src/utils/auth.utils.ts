@@ -40,7 +40,7 @@ export function generateAccessToken(user: User): string {
     type: 'access' as const
   };
   
-  return jwt.sign(payload, JWT_SECRET as jwt.Secret, { expiresIn: JWT_EXPIRES_IN });
+  return jwt.sign(payload, Buffer.from(JWT_SECRET), { expiresIn: JWT_EXPIRES_IN });
 }
 
 /**
@@ -53,7 +53,7 @@ export function generateRefreshToken(user: User): string {
     type: 'refresh' as const
   };
   
-  return jwt.sign(payload, JWT_REFRESH_SECRET as jwt.Secret, { expiresIn: JWT_REFRESH_EXPIRES_IN });
+  return jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: JWT_REFRESH_EXPIRES_IN });
 }
 
 /**

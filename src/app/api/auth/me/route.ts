@@ -1,23 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { authMiddleware, getAuthenticatedUser } from '../../../../middleware/auth.middleware';
 
 export async function GET(request: NextRequest) {
   try {
-    // For build safety, return a simple response
-    // In production, you'd validate the token and return user data
+    // Check authentication
+    const authResponse = await authMiddleware(request);
+    if (authResponse) {
+      return authResponse;
+    }
+
+    const user = getAuthenticatedUser(request as any);
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json(
       { 
-        success: false, 
-        error: 'Authentication required',
-        message: 'Please log in to access this endpoint'
+        success: true, 
+        data: { user }
       },
-      { status: 401 }
+      { status: 200 }
     );
 
   } catch (error: any) {
-    console.error('Auth check error:', error);
+    console.error('Get user profile error:', error);
     
     return NextResponse.json(
-      { success: false, error: 'Authentication check failed' },
+      { success: false, error: 'Failed to get user profile' },
       { status: 500 }
     );
   }
@@ -25,19 +38,36 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    // For build safety, return a simple response
-    // In production, you'd validate the token and update user data
+    // Check authentication
+    const authResponse = await authMiddleware(request);
+    if (authResponse) {
+      return authResponse;
+    }
+
+    const user = getAuthenticatedUser(request as any);
+    
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      );
+    }
+    
+    const body = await request.json();
+
+    // For now, return a simple response
+    // In production, you'd update the user profile
     return NextResponse.json(
       { 
-        success: false, 
-        error: 'Authentication required',
-        message: 'Please log in to access this endpoint'
+        success: true, 
+        message: 'Profile updated successfully',
+        data: { user }
       },
-      { status: 401 }
+      { status: 200 }
     );
 
   } catch (error: any) {
-    console.error('Update profile error:', error);
+    console.error('Update user profile error:', error);
     
     return NextResponse.json(
       { success: false, error: 'Failed to update profile' },

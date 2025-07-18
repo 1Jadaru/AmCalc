@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { PaymentRow, AmortizationResults } from '@/types/calculator.types';
 import SaveToProjectModal from '../../ui/SaveToProjectModal';
+import { useAuth } from '@/contexts/auth.context';
 
 interface AmortizationTableProps {
   schedule: PaymentRow[];
@@ -24,6 +25,7 @@ export const AmortizationTable: React.FC<AmortizationTableProps> = ({
   const [page, setPage] = useState(currentPage);
   const [itemsPerPageState, setItemsPerPageState] = useState(itemsPerPage);
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   const totalPages = Math.ceil(schedule.length / itemsPerPageState);
   const startIndex = (page - 1) * itemsPerPageState;
@@ -128,13 +130,16 @@ export const AmortizationTable: React.FC<AmortizationTableProps> = ({
           >
             Export CSV
           </button>
-          {/* Save to Project button */}
-          <button
-            onClick={() => setShowSaveModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          >
-            Save to Project
-          </button>
+          
+          {/* Save to Project button - only show for authenticated users */}
+          {isAuthenticated && (
+            <button
+              onClick={() => setShowSaveModal(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            >
+              Save to Project
+            </button>
+          )}
         </div>
       </div>
 

@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
     // Disable ESLint during builds for deployment
     ignoreDuringBuilds: true,
   },
+  serverExternalPackages: ['@prisma/client'],
 };
 
 export default nextConfig;

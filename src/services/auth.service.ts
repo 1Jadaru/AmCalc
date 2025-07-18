@@ -1,9 +1,25 @@
-import { PrismaClient } from '@prisma/client';
 import { hashPassword, verifyPassword, generateAccessToken, generateRefreshToken, hashToken, generateResetToken, verifyToken } from '../utils/auth.utils';
 import { RegisterCredentials, LoginCredentials, User } from '../types/auth.types';
 
-// Default Prisma client instance
-let prisma = new PrismaClient();
+// Dynamic Prisma import to avoid build-time issues
+let prisma: any = null;
+
+const getPrisma = async () => {
+  if (!prisma) {
+    const { PrismaClient } = await import('@prisma/client');
+    prisma = new PrismaClient({
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL || 'postgresql://placeholder',
+        },
+      },
+      log: process.env.NODE_ENV === 'development' 
+        ? ['query', 'error', 'warn'] 
+        : ['error'],
+    });
+  }
+  return prisma;
+};
 
 // Dependency injection for testing
 export function setPrismaClient(client: any) {
@@ -21,9 +37,10 @@ export class AuthService {
    */
   static async registerUser(credentials: RegisterCredentials): Promise<User> {
     const { email, password, firstName, lastName } = credentials;
+    const prismaClient = await getPrisma();
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await prismaClient.user.findUnique({
       where: { email }
     });
 
@@ -35,7 +52,7 @@ export class AuthService {
     const passwordHash = await hashPassword(password);
 
     // Create user
-    const user = await prisma.user.create({
+    const user = await prismaClient.user.create({
       data: {
         email,
         password_hash: passwordHash,
@@ -54,9 +71,10 @@ export class AuthService {
    */
   static async loginUser(credentials: LoginCredentials): Promise<{ user: User; accessToken: string; refreshToken: string }> {
     const { email, password } = credentials;
+    const prismaClient = await getPrisma();
 
     // Find user by email
-    const user = await prisma.user.findUnique({
+    const user = await prismaClient.user.findUnique({
       where: { email }
     });
 
@@ -76,7 +94,7 @@ export class AuthService {
     }
 
     // Update last login
-    await prisma.user.update({
+    await prismaClient.user.update({
       where: { id: user.id },
       data: { last_login: new Date() }
     });
@@ -90,7 +108,7 @@ export class AuthService {
     const tokenHash = await hashToken(refreshToken);
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
-    await prisma.userSession.create({
+    await prismaClient.userSession.create({
       data: {
         user_id: user.id,
         token_hash: tokenHash,
@@ -109,10 +127,12 @@ export class AuthService {
    * Logout user
    */
   static async logoutUser(userId: string, refreshToken: string): Promise<void> {
+    const prismaClient = await getPrisma();
+    
     // Find and delete the session
     const tokenHash = await hashToken(refreshToken);
     
-    await prisma.userSession.deleteMany({
+    await prismaClient.userSession.deleteMany({
       where: {
         user_id: userId,
         token_hash: tokenHash
@@ -124,7 +144,9 @@ export class AuthService {
    * Get user by ID
    */
   static async getUserById(userId: string): Promise<User | null> {
-    const user = await prisma.user.findUnique({
+    const prismaClient = await getPrisma();
+    
+    const user = await prismaClient.user.findUnique({
       where: { id: userId }
     });
 
@@ -135,7 +157,9 @@ export class AuthService {
    * Get user by email
    */
   static async getUserByEmail(email: string): Promise<User | null> {
-    const user = await prisma.user.findUnique({
+    const prismaClient = await getPrisma();
+    
+    const user = await prismaClient.user.findUnique({
       where: { email }
     });
 
@@ -146,7 +170,9 @@ export class AuthService {
    * Update user profile
    */
   static async updateUserProfile(userId: string, updates: { firstName?: string; lastName?: string }): Promise<User> {
-    const user = await prisma.user.update({
+    const prismaClient = await getPrisma();
+    
+    const user = await prismaClient.user.update({
       where: { id: userId },
       data: {
         first_name: updates.firstName,
@@ -161,8 +187,10 @@ export class AuthService {
    * Change user password
    */
   static async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
+    const prismaClient = await getPrisma();
+    
     // Get user with current password
-    const user = await prisma.user.findUnique({
+    const user = await prismaClient.user.findUnique({
       where: { id: userId }
     });
 
@@ -180,7 +208,7 @@ export class AuthService {
     const newPasswordHash = await hashPassword(newPassword);
 
     // Update password
-    await prisma.user.update({
+    await prismaClient.user.update({
       where: { id: userId },
       data: { password_hash: newPasswordHash }
     });
@@ -190,7 +218,9 @@ export class AuthService {
    * Request password reset
    */
   static async requestPasswordReset(email: string): Promise<void> {
-    const user = await prisma.user.findUnique({
+    const prismaClient = await getPrisma();
+    
+    const user = await prismaClient.user.findUnique({
       where: { email }
     });
 
@@ -204,8 +234,8 @@ export class AuthService {
     const tokenHash = await hashToken(resetToken);
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-    // Store reset token in database
-    await prisma.passwordReset.create({
+    // Store reset token
+    await prismaClient.passwordReset.create({
       data: {
         user_id: user.id,
         token_hash: tokenHash,
@@ -213,8 +243,7 @@ export class AuthService {
       }
     });
 
-    // TODO: Send email with reset link
-    // For now, just log the token (in production, send email)
+    // TODO: Send email with reset token
     console.log(`Password reset token for ${email}: ${resetToken}`);
   }
 
@@ -222,47 +251,49 @@ export class AuthService {
    * Reset password with token
    */
   static async resetPassword(token: string, newPassword: string): Promise<void> {
+    const prismaClient = await getPrisma();
+    
+    const tokenHash = await hashToken(token);
+
     // Find valid reset token
-    const resetTokens = await prisma.passwordReset.findMany({
+    const resetRecord = await prismaClient.passwordReset.findFirst({
       where: {
+        token_hash: tokenHash,
         expires_at: {
           gt: new Date()
         }
+      },
+      include: {
+        user: true
       }
     });
 
-    let validToken = null;
-    for (const resetToken of resetTokens) {
-      if (await verifyToken(token, resetToken.token_hash)) {
-        validToken = resetToken;
-        break;
-      }
-    }
-
-    if (!validToken) {
+    if (!resetRecord) {
       throw new Error('Invalid or expired reset token');
     }
 
     // Hash new password
-    const passwordHash = await hashPassword(newPassword);
+    const newPasswordHash = await hashPassword(newPassword);
 
     // Update user password
-    await prisma.user.update({
-      where: { id: validToken.user_id },
-      data: { password_hash: passwordHash }
+    await prismaClient.user.update({
+      where: { id: resetRecord.user_id },
+      data: { password_hash: newPasswordHash }
     });
 
-    // Delete all reset tokens for this user
-    await prisma.passwordReset.deleteMany({
-      where: { user_id: validToken.user_id }
+    // Delete used reset token
+    await prismaClient.passwordReset.delete({
+      where: { id: resetRecord.id }
     });
   }
 
   /**
-   * Clean up expired sessions
+   * Cleanup expired sessions
    */
   static async cleanupExpiredSessions(): Promise<void> {
-    await prisma.userSession.deleteMany({
+    const prismaClient = await getPrisma();
+    
+    await prismaClient.userSession.deleteMany({
       where: {
         expires_at: {
           lt: new Date()
@@ -272,7 +303,7 @@ export class AuthService {
   }
 
   /**
-   * Map Prisma user to User interface
+   * Map Prisma user to User type
    */
   private static mapUserFromPrisma(user: any): User {
     return {

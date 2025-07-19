@@ -1,6 +1,14 @@
 import { hashPassword, verifyPassword, generateAccessToken, generateRefreshToken, hashToken, generateResetToken, verifyToken } from '../utils/auth.utils';
 import { RegisterCredentials, LoginCredentials, User } from '../types/auth.types';
 
+// Set required Prisma environment variables to prevent query engine panic
+if (!process.env.PRISMA_QUERY_ENGINE_TYPE) {
+  process.env.PRISMA_QUERY_ENGINE_TYPE = 'binary';
+}
+if (!process.env.PRISMA_QUERY_ENGINE_BINARY) {
+  process.env.PRISMA_QUERY_ENGINE_BINARY = 'query-engine';
+}
+
 // Dynamic Prisma import to avoid build-time issues
 let prisma: any = null;
 

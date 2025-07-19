@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthService } from '../../../../services/auth.service';
+import { validateAuthEnvironment } from '../../../../utils/env.validation';
 
 export async function POST(request: NextRequest) {
   try {
+    // Validate environment on first API call
+    validateAuthEnvironment();
+    
     const body = await request.json();
     const { email, password } = body;
 

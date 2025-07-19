@@ -9,6 +9,8 @@ export class AuthPgService {
   static async registerUser(credentials: RegisterCredentials): Promise<User> {
     const { email, password, firstName, lastName } = credentials;
 
+    console.log('🔍 Checking if user exists:', email);
+
     // Check if user already exists
     const existingUser = await executeQuerySingle(
       'SELECT id FROM "User" WHERE email = $1',
@@ -19,9 +21,11 @@ export class AuthPgService {
       throw new Error('User with this email already exists');
     }
 
+    console.log('🔐 Hashing password...');
     // Hash password
     const passwordHash = await hashPassword(password);
 
+    console.log('👤 Creating user...');
     // Create user
     const user = await executeQuerySingle(
       `INSERT INTO "User" (id, email, password_hash, first_name, last_name, is_active, email_verified, created_at, updated_at)
@@ -30,7 +34,16 @@ export class AuthPgService {
       [email, passwordHash, firstName, lastName]
     );
 
-    return this.mapUserFromDb(user);
+    console.log('📊 User created:', user);
+
+    if (!user) {
+      throw new Error('Failed to create user - no user returned from database');
+    }
+
+    const mappedUser = this.mapUserFromDb(user);
+    console.log('✅ User mapped successfully:', mappedUser);
+    
+    return mappedUser;
   }
 
   /**
@@ -39,18 +52,25 @@ export class AuthPgService {
   static async loginUser(credentials: LoginCredentials): Promise<{ user: User; accessToken: string; refreshToken: string }> {
     const { email, password } = credentials;
 
+    console.log('🔍 Looking up user by email:', email);
+
     // Find user by email
     const user = await executeQuerySingle(
       'SELECT id, email, password_hash, first_name, last_name, is_active, email_verified FROM "User" WHERE email = $1',
       [email]
     );
 
+    console.log('📊 User found:', user ? 'Yes' : 'No');
+
     if (!user) {
       throw new Error('Invalid email or password');
     }
 
+    console.log('🔐 Verifying password...');
     // Verify password
     const isValidPassword = await verifyPassword(password, user.password_hash);
+    console.log('🔑 Password valid:', isValidPassword);
+
     if (!isValidPassword) {
       throw new Error('Invalid email or password');
     }
@@ -60,17 +80,20 @@ export class AuthPgService {
       throw new Error('Account is deactivated');
     }
 
+    console.log('📝 Updating last login...');
     // Update last login
     await executeQuery(
       'UPDATE "User" SET last_login = NOW() WHERE id = $1',
       [user.id]
     );
 
+    console.log('🎫 Generating tokens...');
     // Generate tokens
     const mappedUser = this.mapUserFromDb(user);
     const accessToken = generateAccessToken(mappedUser);
     const refreshToken = generateRefreshToken(mappedUser);
 
+    console.log('💾 Storing refresh token...');
     // Store refresh token hash in database
     const tokenHash = await hashToken(refreshToken);
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
@@ -80,6 +103,8 @@ export class AuthPgService {
        VALUES (gen_random_uuid(), $1, $2, $3, NOW())`,
       [user.id, tokenHash, expiresAt]
     );
+
+    console.log('✅ Login successful for user:', mappedUser.id);
 
     return {
       user: mappedUser,

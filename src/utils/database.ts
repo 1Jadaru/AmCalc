@@ -16,16 +16,7 @@ const getPrismaClient = async (): Promise<any> => {
   if (!prismaClient) {
     // Only import Prisma at runtime, not build time
     const { PrismaClient } = await import('@prisma/client')
-    prismaClient = new PrismaClient({
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL || 'postgresql://placeholder',
-        },
-      },
-      log: process.env.NODE_ENV === 'development' 
-        ? ['query', 'error', 'warn'] 
-        : ['error'],
-    })
+    prismaClient = new PrismaClient()
   }
   return prismaClient
 }

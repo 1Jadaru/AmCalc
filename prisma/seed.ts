@@ -1,15 +1,8 @@
 ﻿// Alternative approach to avoid Prisma query engine issues
 import { PrismaClient } from '@prisma/client'
 
-// Create Prisma client with explicit configuration
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
-    },
-  },
-  log: ['query', 'info', 'warn', 'error'],
-})
+// Create Prisma client with simplified configuration
+const prisma = new PrismaClient()
 
 // Validation helpers
 const validateEmail = (email: string): boolean => {

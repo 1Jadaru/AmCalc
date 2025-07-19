@@ -17,17 +17,30 @@ const getPrismaClient = async (): Promise<any> => {
     // Only import Prisma at runtime, not build time
     const { PrismaClient } = await import('@prisma/client')
     prismaClient = new PrismaClient({
+      // Production-specific configuration
+      log: process.env.NODE_ENV === 'production' ? ['error'] : ['query', 'error', 'warn'],
+      // Add connection pooling for production
       datasources: {
         db: {
-          url: process.env.DATABASE_URL || 'postgresql://placeholder',
+          url: process.env.DATABASE_URL,
         },
       },
-      log: process.env.NODE_ENV === 'development' 
-        ? ['query', 'error', 'warn'] 
-        : ['error'],
     })
   }
   return prismaClient
+}
+
+// Database connection validation
+export async function validateDatabaseConnection(): Promise<boolean> {
+  try {
+    const client = await getPrismaClient();
+    await client.$queryRaw`SELECT 1 as health_check`;
+    console.log('✅ Database connection validation passed');
+    return true;
+  } catch (error) {
+    console.error('❌ Database connection validation failed:', error);
+    return false;
+  }
 }
 
 // Simple database manager

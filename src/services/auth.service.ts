@@ -1,32 +1,20 @@
 import { hashPassword, verifyPassword, generateAccessToken, generateRefreshToken, hashToken, generateResetToken, verifyToken } from '../utils/auth.utils';
 import { RegisterCredentials, LoginCredentials, User } from '../types/auth.types';
+import { prisma } from '../utils/database';
 
-// Set required Prisma environment variables to prevent query engine panic
-if (!process.env.PRISMA_QUERY_ENGINE_TYPE) {
-  process.env.PRISMA_QUERY_ENGINE_TYPE = 'binary';
-}
-if (!process.env.PRISMA_QUERY_ENGINE_BINARY) {
-  process.env.PRISMA_QUERY_ENGINE_BINARY = 'query-engine';
-}
-
-// Dynamic Prisma import to avoid build-time issues
-let prisma: any = null;
-
+// Use the existing database utility instead of creating a new Prisma client
 const getPrisma = async () => {
-  if (!prisma) {
-    const { PrismaClient } = await import('@prisma/client');
-    prisma = new PrismaClient();
-  }
-  return prisma;
+  return await prisma();
 };
 
 // Dependency injection for testing
 export function setPrismaClient(client: any) {
-  prisma = client;
+  // This function is no longer needed as we are using the global prisma
 }
 
 // Get current Prisma client (for testing)
 export function getPrismaClient() {
+  // This function is no longer needed as we are using the global prisma
   return prisma;
 }
 

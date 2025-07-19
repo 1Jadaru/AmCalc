@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authMiddleware, getAuthenticatedUser } from '../../../../middleware/auth.middleware';
-import { AuthService } from '../../../../services/auth.service';
+import { AuthPgService } from '../../../../services/auth-pg.service';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     if (refreshToken && user) {
       // Logout user and invalidate session
-      await AuthService.logoutUser(user.id, refreshToken);
+      await AuthPgService.logoutUser(user.id, refreshToken);
     }
 
     // Clear cookies

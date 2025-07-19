@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAccessToken, extractTokenFromHeader } from '../utils/auth.utils';
-import { AuthService } from '../services/auth.service';
+import { AuthPgService } from '../services/auth-pg.service';
 import { User } from '../types/auth.types';
 
 export interface AuthenticatedRequest extends NextRequest {
@@ -37,7 +37,7 @@ export async function authMiddleware(request: NextRequest): Promise<NextResponse
       );
     }
 
-    const user = await AuthService.getUserById(decoded.userId);
+    const user = await AuthPgService.getUserById(decoded.userId);
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
@@ -82,7 +82,7 @@ export async function optionalAuthMiddleware(request: NextRequest): Promise<Next
       return null; // Continue without authentication
     }
 
-    const user = await AuthService.getUserById(decoded.userId);
+    const user = await AuthPgService.getUserById(decoded.userId);
     if (user && user.isActive) {
       (request as AuthenticatedRequest).user = user;
     }

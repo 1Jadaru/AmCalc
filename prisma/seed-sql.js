@@ -1,5 +1,6 @@
 // JavaScript version of SQL seed script for Render.com
 const { Client } = require('pg');
+const bcrypt = require('bcryptjs');
 
 async function main() {
   console.log('🚀 Starting database seeding with SQL...');
@@ -17,13 +18,17 @@ async function main() {
       throw new Error('DATABASE_URL environment variable is required');
     }
 
+    // Create a proper password hash for demo user
+    const demoPassword = 'demo123';
+    const passwordHash = await bcrypt.hash(demoPassword, 12);
+
     // Create sample user
     const userResult = await client.query(`
       INSERT INTO "User" (id, email, password_hash, first_name, last_name, is_active, email_verified, created_at, updated_at)
       VALUES (
         gen_random_uuid(),
         'demo@amcalc.com',
-        '$2b$10$example.hash.for.demo.user',
+        $1,
         'Demo',
         'User',
         true,
@@ -31,12 +36,15 @@ async function main() {
         NOW(),
         NOW()
       )
-      ON CONFLICT (email) DO NOTHING
+      ON CONFLICT (email) DO UPDATE SET
+        password_hash = $1,
+        updated_at = NOW()
       RETURNING id, email
-    `);
+    `, [passwordHash]);
 
     const user = userResult.rows[0];
     console.log('✅ Created demo user:', user?.email || 'already exists');
+    console.log('📝 Demo credentials: demo@amcalc.com / demo123');
 
     // Get user ID (either newly created or existing)
     const userQuery = await client.query(`

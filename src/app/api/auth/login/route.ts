@@ -14,11 +14,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log('Login attempt for email:', email);
+
     // Login user
     const { user, accessToken, refreshToken } = await AuthService.loginUser({
       email,
       password
     });
+
+    console.log('Login successful for user:', user.id);
 
     // Create response
     const response = NextResponse.json(
@@ -56,7 +60,9 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('Login error:', error);
+    console.error('Error stack:', error.stack);
     
+    // Handle specific error types
     if (error.message === 'Invalid email or password') {
       return NextResponse.json(
         { success: false, error: 'Invalid email or password' },
@@ -71,8 +77,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Handle database connection errors
+    if (error.code === 'P1001' || error.code === 'P1002' || error.code === 'P1017') {
+      console.error('Database connection error:', error);
+      return NextResponse.json(
+        { success: false, error: 'Service temporarily unavailable. Please try again later.' },
+        { status: 503 }
+      );
+    }
+
+    // Handle Prisma errors
+    if (error.code && error.code.startsWith('P')) {
+      console.error('Prisma error:', error);
+      return NextResponse.json(
+        { success: false, error: 'Database error occurred. Please try again.' },
+        { status: 500 }
+      );
+    }
+
+    // Generic error response
     return NextResponse.json(
-      { success: false, error: 'Login failed' },
+      { success: false, error: 'Login failed. Please try again.' },
       { status: 500 }
     );
   }

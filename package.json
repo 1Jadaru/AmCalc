@@ -25,7 +25,8 @@
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:sql": "tsx prisma/seed-sql.ts",
-    "db:seed:js": "node prisma/seed-sql.js"
+    "db:seed:js": "node prisma/seed-sql.js",
+    "test:demo": "tsx src/utils/test-demo-user.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",

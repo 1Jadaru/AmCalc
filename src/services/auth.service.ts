@@ -7,13 +7,7 @@ let prisma: any = null;
 const getPrisma = async () => {
   if (!prisma) {
     const { PrismaClient } = await import('@prisma/client');
-    prisma = new PrismaClient({
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL,
-        },
-      },
-    });
+    prisma = new PrismaClient();
   }
   return prisma;
 };
@@ -315,4 +309,4 @@ export class AuthService {
       updatedAt: user.updated_at
     };
   }
-} 
+}

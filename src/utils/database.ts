@@ -16,16 +16,8 @@ const getPrismaClient = async (): Promise<any> => {
   if (!prismaClient) {
     // Only import Prisma at runtime, not build time
     const { PrismaClient } = await import('@prisma/client')
-    prismaClient = new PrismaClient({
-      // Production-specific configuration
-      log: process.env.NODE_ENV === 'production' ? ['error'] : ['query', 'error', 'warn'],
-      // Add connection pooling for production
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL,
-        },
-      },
-    })
+    // Use the most basic configuration possible to avoid query engine panics
+    prismaClient = new PrismaClient()
   }
   return prismaClient
 }

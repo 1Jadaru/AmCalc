@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { validateDatabaseConnection } from '../../../utils/database';
+import { validatePgConnection } from '../../../utils/database-pg';
 
 export async function GET(request: NextRequest) {
   try {
-    // Check database connection
-    const dbHealthy = await validateDatabaseConnection();
+    // Check database connection using PostgreSQL directly
+    const dbHealthy = await validatePgConnection();
     
     // Check environment variables
     const envHealthy = process.env.DATABASE_URL && 

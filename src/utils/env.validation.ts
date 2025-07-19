@@ -27,6 +27,20 @@ export function validateEnvironment(): void {
     throw new Error('JWT secrets must be changed from default values');
   }
 
+  // Set Prisma-specific environment variables to prevent query engine panics
+  if (!process.env.PRISMA_QUERY_ENGINE_TYPE) {
+    process.env.PRISMA_QUERY_ENGINE_TYPE = 'binary';
+  }
+  if (!process.env.PRISMA_QUERY_ENGINE_BINARY) {
+    process.env.PRISMA_QUERY_ENGINE_BINARY = 'query-engine';
+  }
+  if (!process.env.PRISMA_CLI_QUERY_ENGINE_TYPE) {
+    process.env.PRISMA_CLI_QUERY_ENGINE_TYPE = 'binary';
+  }
+  if (!process.env.PRISMA_CLI_QUERY_ENGINE_BINARY) {
+    process.env.PRISMA_CLI_QUERY_ENGINE_BINARY = 'query-engine';
+  }
+
   console.log('✅ Environment validation passed');
 }
 

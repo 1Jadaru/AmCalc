@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { AuthService } from '../../../../services/auth.service';
+import { AuthPgService } from '../../../../services/auth-pg.service';
 import { validateAuthEnvironment } from '../../../../utils/env.validation';
 
 export async function POST(request: NextRequest) {
@@ -20,8 +20,8 @@ export async function POST(request: NextRequest) {
 
     console.log('Login attempt for email:', email);
 
-    // Login user
-    const { user, accessToken, refreshToken } = await AuthService.loginUser({
+    // Login user using PostgreSQL service
+    const { user, accessToken, refreshToken } = await AuthPgService.loginUser({
       email,
       password
     });
@@ -82,20 +82,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle database connection errors
-    if (error.code === 'P1001' || error.code === 'P1002' || error.code === 'P1017') {
+    if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
       console.error('Database connection error:', error);
       return NextResponse.json(
         { success: false, error: 'Service temporarily unavailable. Please try again later.' },
         { status: 503 }
-      );
-    }
-
-    // Handle Prisma errors
-    if (error.code && error.code.startsWith('P')) {
-      console.error('Prisma error:', error);
-      return NextResponse.json(
-        { success: false, error: 'Database error occurred. Please try again.' },
-        { status: 500 }
       );
     }
 

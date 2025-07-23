@@ -15,7 +15,7 @@ interface Project {
 }
 
 export default function ProjectsPage() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, makeAuthenticatedRequest } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,20 +35,31 @@ export default function ProjectsPage() {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch('/api/projects', {
-          credentials: 'include',
-        });
-        if (!res.ok) throw new Error('Failed to load projects');
-        const data = await res.json();
-        setProjects(data);
+        const res = await makeAuthenticatedRequest('/api/projects');
+        
+        if (!res.ok) {
+          const errorData = await res.text();
+          console.error('❌ API Error Response:', errorData);
+          throw new Error(`Failed to load projects (${res.status})`);
+        }
+        
+        const response = await res.json();
+        
+        if (response.success && response.data && response.data.projects) {
+          setProjects(response.data.projects);
+        } else {
+          throw new Error(response.error || 'Invalid response format');
+        }
       } catch (err) {
+        console.error('Failed to load projects:', err);
         setError('Failed to load projects.');
+        setProjects([]); // Ensure projects is always an array
       } finally {
         setIsLoading(false);
       }
     };
     if (user) fetchProjects();
-  }, [user]);
+  }, [user, isAuthenticated, makeAuthenticatedRequest]);
 
   const handleCreateProject = () => {
     setShowCreateModal(true);
@@ -100,8 +111,12 @@ export default function ProjectsPage() {
         const errData = await res.json();
         throw new Error(errData.error || 'Failed to create project');
       }
-      const created = await res.json();
-      setProjects(prev => [created, ...prev]);
+      const response = await res.json();
+      if (response.success && response.data && response.data.project) {
+        setProjects(prev => [response.data.project, ...prev]);
+      } else {
+        throw new Error(response.error || 'Invalid response format');
+      }
       handleCloseModal();
     } catch (error: any) {
       setError(error?.message || 'Failed to create project. Please try again.');
@@ -134,8 +149,12 @@ export default function ProjectsPage() {
         const errData = await res.json();
         throw new Error(errData.error || 'Failed to update project');
       }
-      const updated = await res.json();
-      setProjects(prev => prev.map(p => p.id === editingProject.id ? { ...p, ...updated } : p));
+      const response = await res.json();
+      if (response.success && response.data && response.data.project) {
+        setProjects(prev => prev.map(p => p.id === editingProject.id ? { ...p, ...response.data.project } : p));
+      } else {
+        throw new Error(response.error || 'Invalid response format');
+      }
       handleCloseModal();
     } catch (error: any) {
       setError(error?.message || 'Failed to update project. Please try again.');

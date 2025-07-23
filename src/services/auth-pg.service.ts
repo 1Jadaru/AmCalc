@@ -6,7 +6,7 @@ export class AuthPgService {
   /**
    * Register a new user
    */
-  static async registerUser(credentials: RegisterCredentials): Promise<User> {
+  static async registerUser(credentials: RegisterCredentials): Promise<{ user: User; accessToken: string; refreshToken: string }> {
     const { email, password, firstName, lastName } = credentials;
 
     console.log('🔍 Checking if user exists:', email);
@@ -43,7 +43,29 @@ export class AuthPgService {
     const mappedUser = this.mapUserFromDb(user);
     console.log('✅ User mapped successfully:', mappedUser);
     
-    return mappedUser;
+    console.log('🎫 Generating tokens for new user...');
+    // Generate tokens for the new user
+    const accessToken = generateAccessToken(mappedUser);
+    const refreshToken = generateRefreshToken(mappedUser);
+
+    console.log('💾 Storing refresh token for new user...');
+    // Store refresh token hash in database
+    const tokenHash = await hashToken(refreshToken);
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+    await executeQuery(
+      `INSERT INTO "UserSession" (id, user_id, token_hash, expires_at, created_at)
+       VALUES (gen_random_uuid(), $1, $2, $3, NOW())`,
+      [mappedUser.id, tokenHash, expiresAt]
+    );
+
+    console.log('✅ Registration successful with tokens for user:', mappedUser.id);
+    
+    return {
+      user: mappedUser,
+      accessToken,
+      refreshToken
+    };
   }
 
   /**

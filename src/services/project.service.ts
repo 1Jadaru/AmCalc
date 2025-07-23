@@ -51,8 +51,8 @@ export class ProjectService {
     console.log('📝 Creating project for user:', userId);
     
     const result = await executeQuerySingle(
-      `INSERT INTO "Project" (user_id, name, description) 
-       VALUES ($1, $2, $3) 
+      `INSERT INTO "Project" (id, user_id, name, description, is_archived, created_at, updated_at) 
+       VALUES (gen_random_uuid(), $1, $2, $3, false, NOW(), NOW()) 
        RETURNING id, user_id, name, description, is_archived, created_at, updated_at`,
       [userId, name, description || null]
     );

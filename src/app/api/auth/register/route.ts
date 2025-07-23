@@ -21,30 +21,55 @@ export async function POST(request: NextRequest) {
     console.log('Registration attempt for email:', email);
 
     // Register user using PostgreSQL service
-    const user = await AuthPgService.registerUser({
+    const result = await AuthPgService.registerUser({
       email,
       password,
       firstName,
       lastName
     });
 
-    console.log('Registration successful for user:', user.id);
+    console.log('Registration successful for user:', result.user.id);
 
-    return NextResponse.json(
+    // Create response with tokens
+    const response = NextResponse.json(
       { 
         success: true, 
         message: 'User registered successfully',
         data: { 
           user: {
-            id: user.id,
-            email: user.email,
-            firstName: user.firstName,
-            lastName: user.lastName
-          }
+            id: result.user.id,
+            email: result.user.email,
+            firstName: result.user.firstName,
+            lastName: result.user.lastName,
+            isActive: result.user.isActive,
+            emailVerified: result.user.emailVerified
+          },
+          token: result.accessToken,
+          refreshToken: result.refreshToken
         }
       },
       { status: 201 }
     );
+
+    // Set HTTP-only cookies for tokens
+    console.log('🍪 Setting accessToken cookie after registration...');
+    response.cookies.set('accessToken', result.accessToken, {
+      httpOnly: false, // Temporarily disable httpOnly for debugging
+      secure: false, // Explicitly false for localhost development
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 60 * 60 * 24 // 24 hours
+    });
+
+    response.cookies.set('refreshToken', result.refreshToken, {
+      httpOnly: true,
+      secure: false, // Set to true in production
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7 // 7 days
+    });
+
+    return response;
 
   } catch (error: any) {
     console.error('Registration error:', error);

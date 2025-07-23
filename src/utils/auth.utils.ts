@@ -40,7 +40,8 @@ export function generateAccessToken(user: User): string {
     type: 'access' as const
   };
   
-  return jwt.sign(payload, Buffer.from(JWT_SECRET), { expiresIn: JWT_EXPIRES_IN });
+  // @ts-ignore - TypeScript issue with jwt.sign expiresIn type
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 }
 
 /**
@@ -53,7 +54,8 @@ export function generateRefreshToken(user: User): string {
     type: 'refresh' as const
   };
   
-  return jwt.sign(payload, Buffer.from(JWT_REFRESH_SECRET), { expiresIn: JWT_REFRESH_EXPIRES_IN });
+  // @ts-ignore - TypeScript issue with jwt.sign expiresIn type
+  return jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: JWT_REFRESH_EXPIRES_IN });
 }
 
 /**

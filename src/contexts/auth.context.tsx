@@ -1,10 +1,10 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { User, AuthState, LoginCredentials, RegisterCredentials } from '../types/auth.types';
 
 interface AuthContextType extends AuthState {
-  // Additional methods if needed
+  makeAuthenticatedRequest: (url: string, options?: RequestInit) => Promise<Response>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,8 +26,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const checkAuthStatus = async () => {
     try {
+      // Get stored token as fallback
+      const storedToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+      
+      const headers: Record<string, string> = {};
+      if (storedToken) {
+        headers['Authorization'] = `Bearer ${storedToken}`;
+      }
+      
       const response = await fetch('/api/auth/me', {
-        credentials: 'include'
+        credentials: 'include',
+        headers
       });
 
       if (response.ok) {
@@ -35,7 +44,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(data.data.user);
         setIsAuthenticated(true);
       } else if (response.status === 401) {
-        // User is not authenticated - this is expected behavior
+        // User is not authenticated - clear stored token
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('accessToken');
+        }
         setUser(null);
         setIsAuthenticated(false);
       } else {
@@ -74,6 +86,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(data.data.user);
         setIsAuthenticated(true);
         setError(null);
+        
+        // Store token locally as fallback for development
+        if (data.data.token) {
+          localStorage.setItem('accessToken', data.data.token);
+        }
       } else {
         setError(data.error || 'Login failed');
         throw new Error(data.error || 'Login failed');
@@ -127,18 +144,46 @@ export function AuthProvider({ children }: AuthProviderProps) {
         credentials: 'include'
       });
 
+      // Clear stored token
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('accessToken');
+      }
+
       setUser(null);
       setIsAuthenticated(false);
       setError(null);
     } catch (error) {
       console.error('Logout error:', error);
-      // Even if logout fails, clear local state
+      // Even if logout fails, clear local state and stored token
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('accessToken');
+      }
       setUser(null);
       setIsAuthenticated(false);
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Helper function to make authenticated API requests
+  const makeAuthenticatedRequest = useCallback(async (url: string, options: RequestInit = {}) => {
+    const storedToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    
+    const headers = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    } as Record<string, string>;
+    
+    if (storedToken) {
+      headers['Authorization'] = `Bearer ${storedToken}`;
+    }
+    
+    return fetch(url, {
+      ...options,
+      credentials: 'include',
+      headers,
+    });
+  }, []); // Empty dependency array since this function doesn't depend on any state
 
   const clearError = () => {
     setError(null);
@@ -153,7 +198,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     register,
     logout,
     setUser,
-    clearError
+    clearError,
+    makeAuthenticatedRequest
   };
 
   return (

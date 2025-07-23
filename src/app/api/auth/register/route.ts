@@ -34,11 +34,13 @@ export async function POST(request: NextRequest) {
       { 
         success: true, 
         message: 'User registered successfully',
-        data: { user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName
+        data: { 
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName
+          }
         }
       },
       { status: 201 }

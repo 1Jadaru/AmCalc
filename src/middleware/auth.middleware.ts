@@ -12,17 +12,43 @@ export interface AuthenticatedRequest extends NextRequest {
  */
 export async function authMiddleware(request: NextRequest): Promise<NextResponse | null> {
   try {
+    console.log('🔐 Auth middleware called for:', request.url);
+    
     // First try to get token from Authorization header
     const authHeader = request.headers.get('authorization');
     let token = extractTokenFromHeader(authHeader || undefined);
+    console.log('🎫 Token from header:', token ? 'Found' : 'Not found');
 
     // If no token in header, try to get from cookie
     if (!token) {
+      // Debug: log all available cookies
+      const cookieNames: string[] = [];
+      const cookies = request.cookies.getAll();
+      cookies.forEach(cookie => {
+        cookieNames.push(`${cookie.name}=${cookie.value.substring(0, 20)}...`);
+      });
+      console.log('🍪 All available cookies:', cookieNames);
+      
       const accessTokenCookie = request.cookies.get('accessToken');
       token = accessTokenCookie?.value || null;
+      console.log('🍪 Token from cookie:', token ? 'Found' : 'Not found');
+      if (token) {
+        console.log('🍪 Cookie value preview:', token.substring(0, 20) + '...');
+      }
+    }
+
+    // Development fallback: check for token in query parameter
+    if (!token && process.env.NODE_ENV === 'development') {
+      const url = new URL(request.url);
+      const queryToken = url.searchParams.get('auth_token');
+      if (queryToken) {
+        token = queryToken;
+        console.log('🔧 Token from query parameter (dev mode)');
+      }
     }
 
     if (!token) {
+      console.log('❌ No token provided');
       return NextResponse.json(
         { success: false, error: 'No token provided' },
         { status: 401 }
@@ -30,7 +56,10 @@ export async function authMiddleware(request: NextRequest): Promise<NextResponse
     }
 
     const decoded = verifyAccessToken(token);
+    console.log('🔍 Token verification result:', decoded ? 'Valid' : 'Invalid');
+    
     if (!decoded) {
+      console.log('❌ Invalid token');
       return NextResponse.json(
         { success: false, error: 'Invalid token' },
         { status: 401 }
@@ -38,7 +67,10 @@ export async function authMiddleware(request: NextRequest): Promise<NextResponse
     }
 
     const user = await AuthPgService.getUserById(decoded.userId);
+    console.log('👤 User lookup result:', user ? `Found user ${user.id}` : 'User not found');
+    
     if (!user) {
+      console.log('❌ User not found');
       return NextResponse.json(
         { success: false, error: 'User not found' },
         { status: 401 }
@@ -47,6 +79,7 @@ export async function authMiddleware(request: NextRequest): Promise<NextResponse
     
     // Add user to request
     (request as AuthenticatedRequest).user = user;
+    console.log('✅ Auth middleware successful for user:', user.id);
     
     return null; // Continue to the next middleware/handler
   } catch (error) {

@@ -22,21 +22,32 @@ const SaveToProjectModal: React.FC<SaveToProjectModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
 
+  const formatPercentage = (rate: number) => {
+    return `${rate.toFixed(2)}%`;
+  };
+
   useEffect(() => {
     if (open) {
-      fetch('/api/projects')
+      fetch('/api/projects', {
+        credentials: 'include',
+      })
         .then((res) => res.json())
-        .then((data) => {
-          if (Array.isArray(data)) {
-            setProjects(data);
+        .then((response) => {
+          if (response.success && response.data && response.data.projects) {
+            setProjects(response.data.projects);
           } else {
+            console.error('Failed to load projects:', response.error);
             setProjects([]);
           }
+        })
+        .catch((error) => {
+          console.error('Error fetching projects:', error);
+          setProjects([]);
         });
       
       // Generate suggested name when modal opens
       if (results) {
-        const suggestedName = `Loan: $${results.summary.principal.toLocaleString()} at ${(results.summary.interestRate * 100).toFixed(2)}% for ${results.summary.termYears} years`;
+        const suggestedName = `Loan: $${results.summary.principal.toLocaleString()} at ${formatPercentage(results.summary.interestRate)} for ${results.summary.termYears} years`;
         setCustomName(suggestedName);
       }
     }
@@ -74,9 +85,9 @@ const SaveToProjectModal: React.FC<SaveToProjectModalProps> = ({
     
     const calculationData = {
       schedule,
-      name: customName || (results ? `Loan: $${results.summary.principal.toLocaleString()} at ${(results.summary.interestRate * 100).toFixed(2)}% for ${results.summary.termYears} years` : 'Saved Calculation'),
+      name: customName || (results ? `Loan: $${results.summary.principal.toLocaleString()} at ${formatPercentage(results.summary.interestRate)} for ${results.summary.termYears} years` : 'Saved Calculation'),
       principal: results?.summary.principal || 0,
-      interest_rate: results?.summary.interestRate ? results.summary.interestRate * 100 : 0, // Convert decimal to percentage
+      interest_rate: results?.summary.interestRate ? results.summary.interestRate / 100 : 0, // Convert percentage to decimal for database storage
       term_years: results?.summary.termYears || 0,
       payment_frequency: paymentFrequency,
       payment_amount: results?.paymentAmount || null,
@@ -93,13 +104,24 @@ const SaveToProjectModal: React.FC<SaveToProjectModalProps> = ({
     const res = await fetch(`/api/projects/${selectedProject}/calculations`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(calculationData),
     });
+    
+    console.log('Response status:', res.status);
+    console.log('Response headers:', Object.fromEntries(res.headers.entries()));
+    
     setLoading(false);
+    
     if (res.ok) {
+      const responseData = await res.json();
+      console.log('Success response:', responseData);
       setFeedback('Calculation saved!');
       setTimeout(onClose, 1000);
     } else {
+      const errorData = await res.text();
+      console.error('Error response:', errorData);
+      console.error('Response status:', res.status);
       setFeedback('Failed to save. Try again.');
     }
   };

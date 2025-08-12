@@ -11,9 +11,21 @@ export default function Home() {
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
+            <div className="flex flex-col">
               <h1 className="text-3xl font-bold text-gray-900">AmCalc</h1>
-              <span className="ml-2 text-sm text-gray-500">Professional Amortization Calculator</span>
+              <span className="text-sm text-gray-500 mt-1">Professional Amortization Calculator</span>
+              <span className="text-xs text-gray-400 mt-1">
+                A{' '}
+                <a 
+                  href="https://jadaru.co" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-500 hover:text-blue-700 underline"
+                >
+                  Jadaru
+                </a>{' '}
+                company
+              </span>
             </div>
             <nav className="flex space-x-8">
               {isAuthenticated ? (
